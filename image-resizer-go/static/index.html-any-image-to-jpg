@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Resizer</title>
+</head>
+<body>
+    <h1>Upload an image to resize</h1>
+    <form id="upload-form" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required><br><br>
+        <input type="submit" value="Upload and Resize">
+    </form>
+
+    <h2>Resized Image:</h2>
+    <img id="resized-image" src="" alt="Resized Image" style="display:none;">
+    <p id="conversion-time"></p>
+
+    <script>
+        document.getElementById('upload-form').onsubmit = async function(e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            let response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                let data = await response.json();
+                let imgElement = document.getElementById('resized-image');
+                imgElement.src = data.url;
+                imgElement.style.display = 'block';
+
+                let timeElement = document.getElementById('conversion-time');
+                timeElement.textContent = "Conversion took: " + data.duration + " milliseconds";
+            } else {
+                alert("Failed to upload and convert image.");
+            }
+        };
+    </script>
+</body>
+</html>

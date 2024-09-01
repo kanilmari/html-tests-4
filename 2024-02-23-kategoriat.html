@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metahaku Kategoriat</title>
+<style>
+  .category {
+    border: 2px solid #007BFF;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+  }
+  .hidden {
+    display: none;
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  ul li {
+    margin: 5px 0;
+  }
+  
+  input {
+	margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<input type="text" id="searchInput" placeholder="Hae kategoriaa...">
+
+<div id="categories">
+  <div class="category">
+    <strong>IT ja Tekniset Palvelut</strong>
+    <ul>
+      <li class="tiketointi tiketti rt">Tiketöinti (Request Tracker)</li>
+      <li class="ohjelmistotuki jira confluence">Ohjelmistotuki</li>
+      <li class="laitteistotuki">Laitteistotuki</li>
+      <li class="tietoturva">Tietoturva</li>
+    </ul>
+  </div>
+
+  <div class="category">
+    <strong>HR, Henkilöstö ja Päivittäispalvelut</strong>
+    <ul>
+      <li class="perehdytys">Perehdytys</li>
+      <li class="koulutukset">Koulutukset</li>
+      <li class="hyvinvointipalvelut">Hyvinvointipalvelut</li>
+      <li class="turre tyoajankirjaus">Työajan kirjaus</li>
+    </ul>
+  </div>
+
+  <div class="category">
+    <strong>Talous ja Raportointi</strong>
+    <ul>
+      <li class="budjetointi">Budjetointi</li>
+      <li class="kulunvalvonta">Kulunvalvonta</li>
+      <li class="raportointijarjestelmat">Raportointijärjestelmät</li>
+      <li class="laskutus">Laskutus</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<script>
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  const searchValue = this.value.toLowerCase();
+  const categories = document.querySelectorAll('#categories .category');
+
+  categories.forEach(category => {
+    let matchFoundInCategory = false;
+
+    // Lisätään kategorian nimen tarkastelu
+    const categoryName = category.querySelector('strong').textContent.toLowerCase();
+    const categoryMatch = categoryName.includes(searchValue) || levenshtein(searchValue, categoryName) <= 2;
+
+    category.querySelectorAll('ul li').forEach(li => {
+      const text = li.textContent.toLowerCase();
+      const classes = li.className.toLowerCase().split(/\s+/);
+      const fullText = text + " " + classes.join(' ');
+
+      let isMatch = false;
+
+      // Etsi suora vastaavuus tai osittainen vastaavuus sallien virheet
+      const words = fullText.split(' ');
+      for (const word of words) {
+        for (let i = 1; i <= word.length; i++) {
+          const wordPart = word.substring(0, i);
+          let distance = levenshtein(wordPart, searchValue);
+          if (searchValue.length < 6 && distance > 0) {
+            distance = 1000; // Käytännössä sama kuin ei vastaavuutta
+          }
+          if (distance <= 2 || word.includes(searchValue)) {
+            isMatch = true;
+            break;
+          }
+        }
+        if (isMatch) break;
+      }
+
+      li.style.display = isMatch ? '' : 'none';
+      if (isMatch) matchFoundInCategory = true;
+    });
+
+    // Jos kategoria vastaa hakua tai ainakin yksi sen alikategorioista vastaa, näytetään kategoria
+    if (matchFoundInCategory || categoryMatch) {
+      category.style.display = '';
+      if (categoryMatch) {
+        // Jos itse kategoria vastaa hakua, varmistetaan, että kaikki sen alikategoriat näytetään
+        category.querySelectorAll('ul li').forEach(li => li.style.display = '');
+      }
+    } else {
+      category.style.display = 'none';
+    }
+  });
+});
+
+function levenshtein(a, b) {
+  let t = [], u, i, j, m = a.length, n = b.length;
+  if (!m) { return n; }
+  if (!n) { return m; }
+  for (j = 0; j <= n; j++) { t[j] = j; }
+  for (i = 1; i <= m; i++) {
+    for (u = [i], j = 1; j <= n; j++) {
+      u[j] = a[i - 1] === b[j - 1] ? t[j - 1] : Math.min(t[j - 1], t[j], u[j - 1]) + 1;
+    } t = u;
+  }
+  return u[n];
+}
+
+</script>
+
+</body>
+</html>

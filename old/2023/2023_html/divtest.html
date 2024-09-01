@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			background-color: rgb(152, 152, 152);
+		}
+
+		:root {
+			--stroke-color: white;
+			--stroke-width: 2;
+			--fill-color: rgb(41, 106, 131);
+		}
+
+		/* .svgtab {
+            padding: 10px;
+            margin: 10px;
+        } */
+	</style>
+</head>
+
+<body>
+	<div class="svgtab">
+		<?xml version="1.0" encoding="UTF-8"?>
+		<svg id="mySvg" width="220" height="110" xmlns="http://www.w3.org/2000/svg">
+			<!-- Define filter -->
+			<defs>
+				<!-- <filter id="f1" x="-10%" y="-10%" width="120%" height="120%">
+					<feOffset result="offOut" in="SourceAlpha" dx="1" dy="1" />
+					<feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />
+					<feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+				</filter> -->
+			</defs>
+
+			<!-- Use filter on the main group -->
+			<g filter="">
+				<!-- Main rectangle (left side with rounded corners) -->
+				<rect x="13" y="14.5" rx="5" ry="5" width="70" height="46" fill="var(--fill-color)" />
+				<!-- Main rectangle (right side without rounded corners) -->
+				<rect x="78" y="14.5" width="75" height="46" fill="var(--fill-color)" />
+				<!-- Right side -->
+				<path id="leftSide" d="M 17 60 Q 12 60 12 55 L 12 20 Q 12 15 17 15" stroke="var(--stroke-color)"
+					stroke-width=var(--stroke-width) fill="none" />
+				<!-- Top and bottom sides with grey stroke -->
+				<path id="topAndBottomLines" d="M 16.9 15 L 141.1 15 M 16.9 60 L 141.1 60" stroke="var(--stroke-color)"
+					stroke-width="var(--stroke-width)" fill="none" />
+				<!-- Top-right curve -->
+				<path d="M 141 3 L 153 3 L 153 15 Q 153 3 141 3 Z" fill="var(--fill-color)"
+					transform="rotate(90 147,9)" />
+				<path d="M 153 15 Q 153 3 141 3" fill="none" stroke="var(--stroke-color)"
+					stroke-width=var(--stroke-width) transform="rotate(90 147,9)" />
+				<!-- Bottom-right curve -->
+				<path id="bottomRightCurvedArea" d="M 141 60 L 153 60 L 153 72 Q 153 60 141 60 Z"
+					fill="var(--fill-color)" />
+				<path id="bottomRightCurvedLine" d="M 153 72 Q 153 60 141 60" fill="none" stroke="var(--stroke-color)"
+					stroke-width=var(--stroke-width) />
+			</g>
+		</svg>
+
+	</div>
+	<!-- Input field to adjust SVG height -->
+	<input type="number" id="svgHeightInput" placeholder="Enter new height" onchange="adjustHeight()">
+	<button onclick="adjustHeight()">Change Height</button>
+
+	<script>
+		let previousHeight = 100;  // Set this to the initial height of your SVG
+
+		function adjustHeight() {
+			const newHeight = parseInt(document.getElementById("svgHeightInput").value, 10);
+			const svgElement = document.getElementById("mySvg");
+
+			// Update the height of the main SVG
+			svgElement.setAttribute("height", newHeight);
+
+			// Select the rectangles you want to modify
+			const rects = svgElement.querySelectorAll("rect");
+
+			// Adjust their heights
+			rects.forEach(rect => {
+				const originalHeight = parseFloat(rect.getAttribute("height"));
+				const difference = newHeight - previousHeight;  // The change in height
+				const newRectHeight = originalHeight + difference;  // Adjust by the change
+				rect.setAttribute("height", newRectHeight);
+			});
+
+			// Bottom line element
+			const bottomLine = svgElement.querySelector("#topAndBottomLines");
+
+			// Calculate the new position for the bottom line based solely on the new height
+			const originalBottomLinePosition = 60;  // Alkuperäinen korkeus pohjaviivalle
+			const newBottomLinePosition = originalBottomLinePosition + (newHeight - 100);  // Oletetaan, että alkuperäinen SVG-korkeus on 100
+
+			bottomLine.setAttribute("d", `M 16.9 15 L 141.1 15 M 16.9 ${newBottomLinePosition} L 141.1 ${newBottomLinePosition}`);
+
+
+			// Adjust the path element
+			const pathElement = svgElement.querySelector('#leftSide');
+			let dAttr = pathElement.getAttribute('d');
+
+			// Extract the y-coordinates related to the height from the "d" attribute
+			const regex = /M 17 (\d+) Q 12 (\d+) 12 (\d+) L 12 20 Q 12 15 17 15/;
+			const [, y1, y2, y3,] = dAttr.match(regex);
+
+			// Calculate new y-coordinates
+			const newY1 = parseInt(y1, 10) + (newHeight - previousHeight);
+			const newY2 = parseInt(y2, 10) + (newHeight - previousHeight);
+			const newY3 = parseInt(y3, 10) + (newHeight - previousHeight);
+
+			// Update "d" attribute with new coordinates
+			const newDAttr = `M 17 ${newY1} Q 12 ${newY2} 12 ${newY3} L 12 20 Q 12 15 17 15`;
+			pathElement.setAttribute('d', newDAttr);
+
+
+
+			// Adjust the curved path elements at the bottom
+			const originalBottomCurvePosition = 70;  // alkuperäinen y-koordinaatti kaarelle
+			const svgOriginalHeight = 110; // alkuperäinen SVG:n korkeus
+			const distanceFromBottom = svgOriginalHeight - originalBottomCurvePosition;
+
+			const newBottomCurvePosition = newHeight - distanceFromBottom;
+
+			let dAttrArea = `M 141 ${newBottomCurvePosition} L 153 ${newBottomCurvePosition} L 153 ${newBottomCurvePosition + 12} Q 153 ${newBottomCurvePosition} 141 ${newBottomCurvePosition} Z`;
+			let dAttrLine = `M 153 ${newBottomCurvePosition + 12} Q 153 ${newBottomCurvePosition} 141 ${newBottomCurvePosition}`;
+
+			bottomRightCurvedArea.setAttribute("d", dAttrArea);
+			bottomRightCurvedLine.setAttribute("d", dAttrLine);
+
+
+			// Update the previousHeight for next time
+			previousHeight = newHeight;
+		}
+	</script>
+</body>
+
+</html>
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<link rel="stylesheet" type="text/css" href="/frontend/styles/buttons.css">
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+	
+		.outest {
+			position: fixed;
+			width: 100px;
+			height: 100%;
+			/* border: 10px solid coral; */
+		}
+	
+		.outer {
+			position: relative;
+			height: 100%;
+		}
+	
+		.outer::after {
+			content: "";
+			position: absolute;
+			top: 0;
+			right: -10px;
+			height: 100%;
+			width: 10px;
+			background-color: violet;
+			z-index: -1;
+		}
+	
+		.inner {
+			width: 50px;
+			height: 50px;
+			border: 10px solid skyblue;
+			position: absolute;
+			right: 0;
+			margin-right: -10px;
+			z-index: 1;
+		}
+	</style>
+</head>
+<body>
+	
+</body>
+</html>
+
+
+<div class="outest">
+	<div class="outer">ulompi<br>divi<br>
+		<button class="inner">sisempi</div>
+		<button id="create-tab" class="inner-tab-button svg_button" style="display: block;"><svg class="svg_tab" width="150"
+				height="54">
+				<defs>
+					<filter id="f1">
+						<feOffset></feOffset>
+						<feGaussianBlur></feGaussianBlur>
+						<feBlend in="SourceGraphic" in2="blurOut" mode="normal"></feBlend>
+					</filter>
+				</defs>
+				<g filter="url(#f1)">
+					<path class="svgInnerTabClickableArea" role="button" aria-label="Click me" tabindex="0"
+						d="M 150 0 A 7 7 0 0 1 143 7 L 23 7 A 7 7 0 0 0 16 13 L 16 40 A 7 7 0 0 0 23 47 L 143 47 A 7 7 0 0 1 150 54"
+						stroke="white"></path>
+					<path class="inactiveTabStroke alwaysThereClass" d="M 150 54 L 150 0"></path>
+					<g transform="translate(21, 41) scale(0.030)">
+						<path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" class="innerClickableIconArea">
+						</path>
+					</g><text class="innerClickableTextArea" x="60" y="35" font-family="Verdana" font-size="16">
+						<tspan x="55" y="33">Create</tspan>
+					</text>
+				</g>
+			</svg></button>
+	</div>
+</div> -->

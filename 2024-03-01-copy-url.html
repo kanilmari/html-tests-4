@@ -1,0 +1,11 @@
+<button onclick="copyCurrentURL()">Copy URL</button>
+
+<script>
+function copyCurrentURL() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    alert("URL copied to clipboard successfully!");
+  }).catch(err => {
+    alert("Failed to copy URL: " + err);
+  });
+}
+</script>

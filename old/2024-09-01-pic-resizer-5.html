@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuvan pienennys vertailu</title>
+    <script src="https://unpkg.com/pica"></script> <!-- Pican CDN-linkki -->
+    <style>
+        * {
+            background: #222;
+            color: #eee;
+        }
+    </style>
+    <script>
+        function resizeImageWithPica(file, maxWidth, maxHeight, callback) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const pica = window.pica();
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    pica.resize(img, canvas, {
+                        unsharpAmount: 80,
+                        unsharpRadius: 0.6,
+                        unsharpThreshold: 2
+                    })
+                        .then(result => pica.toBlob(result, 'image/jpeg', 0.9))
+                        .then(blob => callback(blob));
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+// Unsharp Mask -funktio
+function applyAdaptiveUnsharpMask(ctx, width, height, iterations = 3, minAmount = 10, maxAmount = 50, baseRadius = 1, minThreshold = 5, maxThreshold = 50) {
+    // Suhteutetaan säde kuvan kokoon (esim. suhteessa leveyteen)
+    const radius = baseRadius * (width / 1000); // Skaalaa radius suhteessa kuvan leveyteen
+
+    for (let iter = 0; iter < iterations; iter++) {
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const pixels = imageData.data;
+        const blurred = new ImageData(new Uint8ClampedArray(pixels), width, height);
+        const blurCtx = document.createElement('canvas').getContext('2d');
+
+        // Apply Gaussian blur to the cloned data
+        blurCtx.canvas.width = width;
+        blurCtx.canvas.height = height;
+        blurCtx.putImageData(blurred, 0, 0);
+        blurCtx.filter = `blur(${radius}px)`;
+        blurCtx.drawImage(blurCtx.canvas, 0, 0);
+
+        const blurredData = blurCtx.getImageData(0, 0, width, height).data;
+
+        // Combine original and blurred data
+        for (let i = 0; i < pixels.length; i += 4) {
+            let diffR = pixels[i] - blurredData[i];
+            let diffG = pixels[i + 1] - blurredData[i + 1];
+            let diffB = pixels[i + 2] - blurredData[i + 2];
+
+            // Calculate the contrast difference as the maximum absolute difference in RGB channels
+            let contrastDiff = Math.max(Math.abs(diffR), Math.abs(diffG), Math.abs(diffB));
+
+            // Map the contrast difference to the corresponding amount and threshold
+            let amount = minAmount + (maxAmount - minAmount) * (contrastDiff / 255);
+            let threshold = minThreshold + (maxThreshold - minThreshold) * (contrastDiff / 255);
+
+            if (Math.abs(diffR) > threshold) {
+                pixels[i] += amount / 100 * diffR;
+            }
+            if (Math.abs(diffG) > threshold) {
+                pixels[i + 1] += amount / 100 * diffG;
+            }
+            if (Math.abs(diffB) > threshold) {
+                pixels[i + 2] += amount / 100 * diffB;
+            }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+    }
+}
+
+
+var ResampleLanczos = (function () {
+    var CACHE;
+    var CACHE_PRECISION = 1000;
+    var FILTER_SIZE = 2; // Vaihdettu tukialueeksi 2 pehmeämmän lopputuloksen saamiseksi
+
+    var kernels = {
+        lanczos: function (size, x) {
+            if (x >= size || x <= -size) return 0;
+            if (x === 0) return 1;
+            var xpi = x * Math.PI;
+            return size * Math.sin(xpi) * Math.sin(xpi / size) / (xpi * xpi);
+        }
+    };
+
+    function createCache(kernel, cachePrecision, filterSize) {
+        var cache = {};
+        var max = filterSize * filterSize * cachePrecision;
+        var iPrecision = 1.0 / cachePrecision;
+        var value;
+        for (var cacheKey = 0; cacheKey < max; cacheKey++) {
+            value = kernel(filterSize, Math.sqrt(cacheKey * iPrecision));
+            cache[cacheKey] = value < 0 ? 0 : value;
+        }
+        return cache;
+    };
+
+    var createCanvas = function (width, height) {
+        var canvas = document.createElement("canvas");
+        canvas.ctx = canvas.getContext("2d");
+        canvas.width = width;
+        canvas.height = height;
+        return canvas;
+    };
+
+    return function (img, width, height, filterSize, kernel) {
+        var cwidth = img.width;
+        var cheight = img.height;
+        var canvas = createCanvas(cwidth, cheight);
+        var ctx = canvas.ctx;
+        ctx.drawImage(img, 0, 0);
+
+        // Apply Unsharp Mask before resizing
+        applyAdaptiveUnsharpMask(ctx, cwidth, cheight, 1, 125, 250, 0.5, 0, 20);
+
+        var src = ctx.getImageData(0, 0, img.width, img.height);
+        var dst = ctx.createImageData(width, height);
+        var swidth = src.width;
+        var sheight = src.height;
+        var sdata = src.data;
+        var dwidth = dst.width;
+        var dheight = dst.height;
+        var ddata = dst.data;
+        var total, distanceY, value;
+        var a, r, g, b;
+        var i;
+        var x, x1, x1b, x1e;
+        var y, y1, y1b, y1e, y2, y3;
+        var values = [];
+        var sx = width / img.width;
+        var sy = height / img.height;
+        var sw1 = img.width - 1;
+        var sh1 = img.height - 1;
+        var isx = 1.0 / sx;
+        var isy = 1.0 / sy;
+        var cw = 1.0 / width;
+        var ch = 1.0 / height;
+        var csx = Math.min(1, sx) * Math.min(1, sx);
+        var csy = Math.min(1, sy) * Math.min(1, sy);
+        var sourcePixelX, sourcePixelY;
+        var cache = CACHE = undefined;
+        var cachePrecision = CACHE_PRECISION;
+        var filterSize = 2; //filterSize || FILTER_SIZE;
+        var kernel = kernels[kernel] || kernels.lanczos;
+        if (!cache) CACHE = cache = createCache(kernel, cachePrecision, filterSize);
+        y = height;
+
+        while (y--) {
+            sourcePixelY = (y + 0.5) * isy;
+            y1b = sourcePixelY - filterSize;
+            if (y1b < 0) y1b = 0;
+            y1e = y1et = sourcePixelY + filterSize;
+            if (y1e != y1et) y1e = y1et + 1;
+            if (y1e > sh1) y1e = sh1;
+            cy = y * ch - sourcePixelY;
+            y3 = y * width;
+            x = width;
+            while (x--) {
+                sourcePixelX = (x + 0.5) * isx;
+                x1b = sourcePixelX - filterSize;
+                if (x1b < 0) x1b = 0;
+                x1e = x1et = sourcePixelX + filterSize;
+                if (x1e != x1et) x1e = x1et + 1;
+                if (x1e > sw1) x1e = sw1;
+                cx = x * cw - sourcePixelX;
+                i = total = 0;
+                for (y1 = y1b >> 0; y1 <= y1e; y1++) {
+                    distanceY = (y1 + cy) * (y1 + cy) * csy;
+                    for (x1 = x1b >> 0; x1 <= x1e; x1++) {
+                        total += values[i++] = cache[((x1 + cx) * (x1 + cx) * csx + distanceY) * cachePrecision >> 0] || 0;
+                    }
+                }
+                total = 1.0 / total;
+                i = a = r = g = b = 0;
+                for (y1 = y1b >> 0; y1 <= y1e; y1++) {
+                    y2 = y1 * img.width;
+                    for (x1 = x1b >> 0; x1 <= x1e; x1++) {
+                        value = values[i++] * total;
+                        idx = ((y2 + x1) >> 0) * 4;
+                        r += sdata[idx] * value;
+                        g += sdata[idx + 1] * value;
+                        b += sdata[idx + 2] * value;
+                        a += sdata[idx + 3] * value;
+                    }
+                }
+                idx = ((x + y3) >> 0) * 4;
+                ddata[idx] = r;
+                ddata[idx + 1] = g;
+                ddata[idx + 2] = b;
+                ddata[idx + 3] = a;
+            }
+        }
+        var finalCanvas = createCanvas(dst.width, dst.height);
+        var finalCtx = finalCanvas.ctx;
+        finalCtx.putImageData(dst, 0, 0);
+        return finalCanvas;
+    };
+})();
+
+function resizeImageWithLanczos(file, maxWidth, maxHeight, callback) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+            const width = maxWidth;
+            const height = maxHeight;
+            const canvas = ResampleLanczos(img, width, height, 3, 'lanczos');
+            canvas.toBlob(callback, 'image/jpeg', 0.9); // Luo Blob-objekti pienennetystä kuvasta
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    const maxSize = 600; // Määritä kuvan maksimikoko tässä
+
+    if (file.type.match('image.*')) {
+
+        resizeImageWithPica(file, maxSize, maxSize, (blob) => {
+            const resizedImageURL = URL.createObjectURL(blob);
+            document.getElementById('output-image-pica').src = resizedImageURL;
+        });
+
+        resizeImageWithLanczos(file, maxSize, maxSize, (blob) => {
+            const resizedImageURL = URL.createObjectURL(blob);
+            document.getElementById('output-image-lanczos').src = resizedImageURL;
+        });
+    } else {
+        alert('Valitse kuvatiedosto.');
+    }
+}
+    </script>
+</head>
+
+<body>
+    <h1>Kuvan pienennys vertailu</h1>
+    <input type="file" id="input-file" accept="image/*">
+    <div>
+        <h2>Picalla pienennetty kuva:</h2>
+        <img id="output-image-pica" alt="Pica pienennetty kuva" style="max-width: 100%; height: auto;">
+    </div>
+    <div>
+        <h2>Lanczos-suodatuksella pienennetty kuva:</h2>
+        <img id="output-image-lanczos" alt="Lanczos pienennetty kuva" style="max-width: 100%; height: auto;">
+    </div>
+    <script>
+        document.getElementById('input-file').addEventListener('change', handleFileSelect);
+    </script>
+</body>
+
+</html>

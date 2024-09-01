@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Scale Factor Calculator</title>
+</head>
+<body>
+    <h1>Dynamic Scale Factor Calculator</h1>
+    <div>
+        <label for="originalWidth">Original Width:</label>
+        <input type="number" id="originalWidth" placeholder="Enter original width">
+    </div>
+    <div>
+        <label for="targetWidth">Target Width:</label>
+        <input type="number" id="targetWidth" placeholder="Enter target width">
+    </div>
+    <button onclick="calculateScaleFactor()">Calculate Scale Factor</button>
+
+    <script>
+        function calculateScaleFactor() {
+            const originalWidth = parseInt(document.getElementById('originalWidth').value);
+            const targetWidth = parseInt(document.getElementById('targetWidth').value);
+
+            if (isNaN(originalWidth) || isNaN(targetWidth) || originalWidth <= 0 || targetWidth <= 0) {
+                console.log("Please enter valid positive numbers.");
+                return;
+            }
+
+            let scaleFactor = originalWidth / targetWidth;
+            let suggestedFactor = Math.ceil(scaleFactor); // Pyöristetään ylöspäin lähimpään kokonaislukuun
+
+            console.log(`Calculated scale factor: ${scaleFactor.toFixed(2)}`);
+            console.log(`Suggested scale factor (rounded up): ${suggestedFactor}`);
+        }
+    </script>
+</body>
+</html>

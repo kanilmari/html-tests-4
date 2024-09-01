@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Test</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    body {
+        background-color: #222;
+        color: #f0f0f0;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        /* Keskittää sisällön */
+    }
+
+    img {
+        display: block;
+        /* Asettaa kuvan omaan riviinsä */
+        border: 1px solid #444;
+        margin: 10px auto;
+        /* Keskittää kuvan ja lisää tilaa ylä- ja alapuolelle */
+    }
+
+    input,
+    button {
+        display: block;
+        /* Asettaa säätimet omille riveilleen */
+        background-color: #333;
+        color: #f0f0f0;
+        border: 1px solid #444;
+        margin: 10px auto;
+        /* Keskittää säätimet ja lisää tilaa ylä- ja alapuolelle */
+        width: 80%;
+        /* Leventää säätimet */
+    }
+#imageContainer {
+  position: relative;
+  display: inline-block;
+  max-width: 600px;
+}
+
+#cropCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+#preview, #cropCanvas {
+  max-width: 600px;
+}
+</style>
+</head>
+
+<body>
+
+<input type="file" id="imageUpload" />
+
+<button onclick="rotateImage()">Turn 'Round</button>
+
+<button id="cropButton" onclick="startCropping()">Hew Image</button>
+
+<label for="brightness">Brightness:</label>
+<input type="range" id="brightness" min="0" max="2" onchange="adjustBrightness()" />
+
+<label for="contrast">Starkness:</label>
+<input type="range" id="contrast" min="0" max="2" step="0.05" onchange="adjustContrast()" />
+
+<label for="colorTemperature">Hue Warmth:</label>
+<input type="range" id="colorTemperature" min="-1" max="1" step="0.01" onchange="adjustColorTemperature()" />
+
+<label for="bypassFilters">Skirt Adjusters:</label>
+<input type="checkbox" id="bypassFilters" onchange="applyFilters()" />
+
+<button id="squareCrop">Tee neliö</button>
+
+<div id="imageContainer" style="display: inline-block; position: relative;">
+    <img id="preview" />
+    <canvas id="cropCanvas"></canvas>
+</div>
+
+
+<script>
+
+// Varmista että controls can be seen outside the image
+// Pidä 1:1 ratio oletuksena, mutta mahdollista kuvasuhteen säilytys ja muutokset
+
+    document.getElementById('imageUpload').addEventListener('change', function () {
+        const file = this.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = function () {
+                const previewImg = document.getElementById('preview');
+                previewImg.src = img.src;
+                previewImg.dataset.original = img.src; // Tallenna alkuperäinen kuva
+            };
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    window.onload = function () {
+        const brightnessSlider = document.getElementById('brightness');
+        const defaultValue = Math.E - 2;
+        const maxBrightness = 2 * defaultValue;
+        const numberOfSteps = 100;
+        const stepValue = maxBrightness / numberOfSteps;
+
+        brightnessSlider.max = maxBrightness; // Asetetaan maksimiarvo kaksi kertaa oletusarvo
+        brightnessSlider.step = stepValue; // Asetetaan steppin arvo
+        brightnessSlider.value = defaultValue; // Asetetaan liukusäädin oletuskirkkauteen
+
+        // console.log("slider: " + brightnessSlider.value + ", value: " + defaultValue);
+
+        const contrastSlider = document.getElementById('contrast');
+        contrastSlider.value = (parseFloat(contrastSlider.min) + parseFloat(contrastSlider.max)) / 2;
+
+        // Asetetaan värilämpötilan liukusäädin oletusarvoon
+        const colorTemperatureSlider = document.getElementById('colorTemperature');
+        colorTemperatureSlider.value = 0;
+    };
+
+
+    // Globaali muuttuja värilämpötilan tallentamiseen
+    let currentColorTemperature = 0;
+
+    function adjustColorTemperature() {
+        const sliderValue = parseFloat(document.getElementById('colorTemperature').value);
+        currentColorTemperature = sliderValue;
+        applyFilters();
+    }
+
+    function rotateImage() {
+        const img = document.getElementById('preview');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Vaihda leveys ja korkeus
+        canvas.width = img.height;
+        canvas.height = img.width;
+
+        // Tallenna nykyinen tila
+        ctx.save();
+
+        // Siirrä piirtoaluetta ja kierrä
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(90 * Math.PI / 180);
+
+        // Piirrä kuva kierrettynä
+        ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
+
+        // Palauta tila
+        ctx.restore();
+
+        // Päivitä kuvan src
+        img.src = canvas.toDataURL();
+
+        // Päivitä myös alkuperäinen kuva, jotta kierrot säilyvät
+        img.dataset.original = img.src;
+    }
+
+    // Globaalit muuttujat kirkkauden ja kontrastin tallentamiseen
+    let currentBrightness = 1;
+    let currentContrast = 1;
+
+    function adjustBrightness() {
+        const sliderValue = parseFloat(document.getElementById('brightness').value);
+        const factor = 2; // Voit säätää tätä arvoa muuttaaksesi kirkkauden muutoksen voimakkuutta
+        currentBrightness = 1 + (Math.log(sliderValue + 2) - 1) * factor;
+        // console.log(currentBrightness);
+        applyFilters();
+    }
+
+    function adjustContrast() {
+        const sliderValue = parseFloat(document.getElementById('contrast').value);
+        currentContrast = sliderValue; // Suoraan säätimen arvo
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const img = document.getElementById('preview');
+        const originalSrc = img.dataset.original;
+        const originalImg = new Image();
+        originalImg.src = originalSrc;
+
+        const bypassFilters = document.getElementById('bypassFilters').checked;
+
+        originalImg.onload = function () {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = originalImg.width;
+            canvas.height = originalImg.height;
+
+            if (bypassFilters) {
+                // Jos säätimet on ohitettu, näytä normaali kuva
+                ctx.drawImage(originalImg, 0, 0, canvas.width, canvas.height);
+            } else {
+                // Sovelletaan kirkkauden ja kontrastin säätö
+                ctx.filter = `brightness(${currentBrightness}) contrast(${currentContrast})`;
+                ctx.drawImage(originalImg, 0, 0, canvas.width, canvas.height);
+
+                // Sovelletaan värilämpötilan korjaus
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const redAdjustment = currentColorTemperature * 40;
+                    const greenAdjustment = currentColorTemperature * 30;
+                    const blueAdjustment = currentColorTemperature * -20;
+
+                    data[i] += redAdjustment; // Punainen kanava
+                    data[i + 1] += greenAdjustment; // Vihreä kanava
+                    data[i + 2] += blueAdjustment; // Sininen kanava
+                }
+
+                ctx.filter = 'none'; // Poista suodatin, jotta värilämpötila säätö ei vaikuta uudelleen
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            img.src = canvas.toDataURL();
+        };
+    }
+///////////////////////
+
+    let resizing = false;
+    let resizeDirection = '';
+    let cropStartX = 0;
+    let cropStartY = 0;
+    let cropWidth = 0;
+    let cropHeight = 0;
+
+    function isNear(value1, value2) {
+        const tolerance = 10; // Voit säätää tätä arvoa tarpeen mukaan
+        return Math.abs(value1 - value2) < tolerance;
+    }
+
+    function startCropping() {
+        const img = document.getElementById('preview');
+        const canvas = document.getElementById('cropCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Aseta kankaan koko ja sijainti kuvan mukaiseksi
+        canvas.width = img.clientWidth;
+        canvas.height = img.clientHeight;
+        canvas.style.left = img.offsetLeft + 'px';
+        canvas.style.top = img.offsetTop + 'px';
+        canvas.style.display = 'block';
+
+        // Aseta rajausalueen koko kuvan kapeamman sivun mukaiseksi
+        cropWidth = cropHeight = Math.min(canvas.width, canvas.height);
+
+        // Aseta rajausalueen sijainti kuvan keskelle
+        cropStartX = (canvas.width - cropWidth) / 2;
+        cropStartY = (canvas.height - cropHeight) / 2;
+
+        // Piirrä tummennettu filmi ja rajausalue
+        drawCropBox(ctx, cropStartX, cropStartY, cropWidth, cropHeight);
+
+        // Lisää tapahtumankäsittelijät rajausalueen koon muuttamiseen
+        const rect = canvas.getBoundingClientRect(); // Hae kankaan suhteellinen sijainti
+        let offsetX = 0; // Hiiren ja rajausalueen x-koordinaatin välinen ero
+        let offsetY = 0; // Hiiren ja rajausalueen y-koordinaatin välinen ero
+
+        // let hasLeftCanvas = false; // Lisää tämä muuttuja koodisi alkuun
+        
+        // // Seurataan suorituskykyä...
+        // let handleMouseMoveCalls = 0;
+        // let updateCursorCalls = 0;
+        // let lastTime = Date.now();
+
+        // setInterval(() => {
+        //     const currentTime = Date.now();
+        //     const deltaTime = (currentTime - lastTime) / 1000; // Aika sekunteina
+        //     lastTime = currentTime;
+
+        //     const handleMouseMovePerSec = handleMouseMoveCalls / deltaTime;
+        //     const updateCursorPerSec = updateCursorCalls / deltaTime;
+
+        //     if (handleMouseMovePerSec > 0) {
+        //         console.log(`handleMouseMove kutsutaan ${handleMouseMovePerSec.toFixed(2)} kertaa/s`);
+        //     }
+        //     if (updateCursorPerSec > 0) {
+        //     console.log(`updateCursor kutsutaan ${updateCursorPerSec.toFixed(2)} kertaa/s`);
+        //     }
+
+        //     handleMouseMoveCalls = 0;
+        //     updateCursorCalls = 0;
+        // }, 1000);
+
+
+
+
+        function handleMouseMove(e) {
+            // handleMouseMoveCalls++;
+            // console.log(`handleMouseMove on kutsuttu ${handleMouseMoveCalls} kertaa.`);
+            // console.log("handleMouseMove called");
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const boundedX = Math.max(0, Math.min(x, canvas.width));
+            const boundedY = Math.max(0, Math.min(y, canvas.height));
+
+
+            // if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
+            //     // console.log("Olet kuvan rajan ulkopuolella");
+            //     hasLeftCanvas = true;
+            // } else {
+            //     if (hasLeftCanvas) {
+            //         // console.log("Olet takaisin kuvan rajan sisällä.");
+            //         // hasLeftCanvas = false;
+            //         // console.log("Olet takaisin kuvan rajan sisällä 1.");
+            //         hasLeftCanvas = false;
+            //         offsetX = boundedX - cropStartX;
+            //         offsetY = boundedY - cropStartY;
+            //     } else {
+            //         // console.log("Olet kuvan sisällä");
+            //     }
+            // }
+            // if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) {
+            //     hasLeftCanvas = true;
+            // } else if (hasLeftCanvas) {
+            //     console.log("Olet takaisin kuvan rajan sisällä.");
+            //     // hasLeftCanvas = false;
+            //     // offsetX = boundedX - cropStartX;
+            //     // offsetY = boundedY - cropStartY;
+            // }
+
+            // Päivitä kursori, vaikka ei oltaisikaan resizing-tilassa
+            updateCursor(boundedX, boundedY);
+
+            if (resizing) {
+                switch (resizeDirection) {
+                    case 'top-left':
+                        cropWidth = cropStartX + cropWidth - boundedX;
+                        cropHeight = cropStartY + cropHeight - boundedY;
+                        cropStartX = boundedX;
+                        cropStartY = boundedY;
+                        break;
+                    case 'top-right':
+                        cropWidth = boundedX - cropStartX;
+                        cropHeight = cropStartY + cropHeight - boundedY;
+                        cropStartY = boundedY;
+                        break;
+                    case 'bottom-left':
+                        cropWidth = cropStartX + cropWidth - boundedX;
+                        cropHeight = boundedY - cropStartY;
+                        cropStartX = boundedX;
+                        break;
+                    case 'bottom-right':
+                        cropWidth = boundedX - cropStartX;
+                        cropHeight = boundedY - cropStartY;
+                        break;
+                    case 'top':
+                        cropHeight = cropStartY + cropHeight - boundedY;
+                        cropStartY = boundedY;
+                        break;
+                    case 'bottom':
+                        cropHeight = boundedY - cropStartY;
+                        break;
+                    case 'left':
+                        cropWidth = cropStartX + cropWidth - boundedX;
+                        cropStartX = boundedX;
+                        break;
+                    case 'right':
+                        cropWidth = boundedX - cropStartX;
+                        break;
+                    case 'move':
+                        cropStartX = boundedX - offsetX;
+                        cropStartY = boundedY - offsetY;
+                        break;
+                }
+
+                // Päivitä tartuntakohtaa lähestyttäessä kuvan reunaa
+                if (resizeDirection === 'move') {
+                    // Vasen reuna
+                    if ((cropStartX <= 0 && boundedX < cropStartX + cropWidth) || boundedX <= 0) {
+                        offsetX = boundedX;
+                    }
+                    // Oikea reuna
+                    else if ((cropStartX + cropWidth >= canvas.width && boundedX > cropStartX) || boundedX >= canvas.width) {
+                        offsetX = boundedX - canvas.width + cropWidth;
+                    }
+
+                    // Yläreuna
+                    if ((cropStartY <= 0 && boundedY < cropStartY + cropHeight) || boundedY <= 0) {
+                        offsetY = boundedY;
+                    }
+                    // Alareuna
+                    else if ((cropStartY + cropHeight >= canvas.height && boundedY > cropStartY) || boundedY >= canvas.height) {
+                        offsetY = boundedY - canvas.height + cropHeight;
+                    }
+                }
+
+                // Tarkista, ettei rajaus mene kuvan ulkopuolelle
+                cropStartX = Math.max(0, Math.min(cropStartX, canvas.width - cropWidth));
+                cropStartY = Math.max(0, Math.min(cropStartY, canvas.height - cropHeight));
+                cropWidth = Math.min(canvas.width - cropStartX, cropWidth);
+                cropHeight = Math.min(canvas.height - cropStartY, cropHeight);
+                drawCropBox(ctx, cropStartX, cropStartY, cropWidth, cropHeight);
+            }
+        }
+        canvas.addEventListener('mousemove', handleMouseMove);
+        // let updateCursorCalls = 0;
+        function updateCursor(x, y) {
+            // updateCursorCalls++;
+            // console.log(`updateCursor on kutsuttu ${updateCursorCalls} kertaa.`);
+    
+            // console.log(`updateCursor called with x: ${x}, y: ${y}`);
+            if (isNear(x, cropStartX) && isNear(y, cropStartY)) canvas.style.cursor = 'nwse-resize';
+            else if (isNear(x, cropStartX + cropWidth) && isNear(y, cropStartY)) canvas.style.cursor = 'nesw-resize';
+            else if (isNear(x, cropStartX) && isNear(y, cropStartY + cropHeight)) canvas.style.cursor = 'nesw-resize';
+            else if (isNear(x, cropStartX + cropWidth) && isNear(y, cropStartY + cropHeight)) canvas.style.cursor = 'nwse-resize';
+            else if (isNear(x, cropStartX + cropWidth / 2) && isNear(y, cropStartY)) canvas.style.cursor = 'ns-resize';
+            else if (isNear(x, cropStartX + cropWidth / 2) && isNear(y, cropStartY + cropHeight)) canvas.style.cursor = 'ns-resize';
+            else if (isNear(y, cropStartY + cropHeight / 2) && isNear(x, cropStartX)) canvas.style.cursor = 'ew-resize';
+            else if (isNear(y, cropStartY + cropHeight / 2) && isNear(x, cropStartX + cropWidth)) canvas.style.cursor = 'ew-resize';
+            else canvas.style.cursor = 'default';
+        }
+
+        canvas.onmousedown = (e) => {
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (isNear(x, cropStartX) && isNear(y, cropStartY)) resizeDirection = 'top-left';
+            else if (isNear(x, cropStartX + cropWidth) && isNear(y, cropStartY)) resizeDirection = 'top-right';
+            else if (isNear(x, cropStartX) && isNear(y, cropStartY + cropHeight)) resizeDirection = 'bottom-left';
+            else if (isNear(x, cropStartX + cropWidth) && isNear(y, cropStartY + cropHeight)) resizeDirection = 'bottom-right';
+            else if (isNear(x, cropStartX + cropWidth / 2) && isNear(y, cropStartY)) resizeDirection = 'top';
+            else if (isNear(x, cropStartX + cropWidth / 2) && isNear(y, cropStartY + cropHeight)) resizeDirection = 'bottom';
+            else if (isNear(y, cropStartY + cropHeight / 2) && isNear(x, cropStartX)) resizeDirection = 'left';
+            else if (isNear(y, cropStartY + cropHeight / 2) && isNear(x, cropStartX + cropWidth)) resizeDirection = 'right';
+
+            if (resizeDirection) {
+                resizing = true;
+            } else if (x > cropStartX && x < cropStartX + cropWidth && y > cropStartY && y < cropStartY + cropHeight) {
+                resizing = true;
+                resizeDirection = 'move';
+                offsetX = x - cropStartX;
+                offsetY = y - cropStartY;
+            }
+            // document.onmousemove = handleMouseMove;
+            document.onmouseup = handleMouseReleaseOrLeave;
+        };
+
+        // canvas.onmousemove = handleMouseMove;
+
+        function handleMouseReleaseOrLeave() {
+            // Tarkista, onko rajausalue kääntynyt
+            if (cropWidth < 0) {
+                cropStartX += cropWidth;
+                cropWidth = Math.abs(cropWidth);
+            }
+            if (cropHeight < 0) {
+                cropStartY += cropHeight;
+                cropHeight = Math.abs(cropHeight);
+            }
+
+            resizing = false;
+            resizeDirection = null;
+            // Nollaa document.onmousemove ja document.onmouseup
+            document.onmousemove = null;
+            document.onmouseup = null;
+        }
+    }
+
+ 
+    function drawCropBox(ctx, x, y, width, height) {
+        // Tyhjennä koko kangas
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        // Piirrä tummennettu filmi
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; // Voit säätää tummennuksen määrää muuttamalla läpinäkyvyyttä
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        // Poista tummennus rajausalueelta
+        ctx.save(); // Tallenna nykyinen tila
+        ctx.globalCompositeOperation = 'destination-out'; // Aseta piirto-operaatio, joka poistaa väriä
+        ctx.fillRect(x, y, width, height);
+        ctx.restore(); // Palauta tila ennen 'destination-out' -operaatiota
+
+        // Piirrä rajausalueen reunat
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, width, height);
+
+        // Piirrä merkit kulmiin ja sivujen keskelle
+        const markerSize = 10; // Voit säätää tätä arvoa tarpeen mukaan
+        ctx.fillStyle = 'rgba(200, 200, 255)'; // Punainen väri
+        ctx.fillRect(x - markerSize / 2, y - markerSize / 2, markerSize, markerSize); // Ylävasen kulma
+        ctx.fillRect(x + width - markerSize / 2, y - markerSize / 2, markerSize, markerSize); // Yläoikea kulma
+        ctx.fillRect(x - markerSize / 2, y + height - markerSize / 2, markerSize, markerSize); // Alavasen kulma
+        ctx.fillRect(x + width - markerSize / 2, y + height - markerSize / 2, markerSize, markerSize); // Alaoikea kulma
+        ctx.fillRect(x + width / 2 - markerSize / 2, y - markerSize / 2, markerSize, markerSize); // Yläsivu
+        ctx.fillRect(x + width / 2 - markerSize / 2, y + height - markerSize / 2, markerSize, markerSize); // Alasivu
+        ctx.fillRect(x - markerSize / 2, y + height / 2 - markerSize / 2, markerSize, markerSize); // Vasen sivu
+        ctx.fillRect(x + width - markerSize / 2, y + height / 2 - markerSize / 2, markerSize, markerSize); // Oikea sivu
+    }
+
+    function makeSquare() {
+        // Laske rajausalueen keskipiste
+        const centerX = cropStartX + cropWidth / 2;
+        const centerY = cropStartY + cropHeight / 2;
+
+        // Hae kankaan koko
+        const canvas = document.getElementById('cropCanvas');
+        const maxSquareSize = Math.min(canvas.width, canvas.height);
+
+        // Aseta rajausalueen uusi koko sen kapeamman sivun mukaiseksi
+        let size = Math.max(cropWidth, cropHeight);
+
+        // Jos koko on suurempi kuin kuvan lyhyempi sivu, palautetaan se kuvan lyhyemmän sivun kokoiseksi
+        if (size > maxSquareSize) {
+            size = maxSquareSize;
+        }
+
+        // Aseta rajausalueen uusi sijainti niin, että keskipiste säilyy
+        cropStartX = centerX - size / 2;
+        cropStartY = centerY - size / 2;
+        cropWidth = cropHeight = size;
+
+        // Tarkista, ettei rajausalue mene kuvan ulkopuolelle
+        if (cropStartX < 0) cropStartX = 0;
+        if (cropStartY < 0) cropStartY = 0;
+        if (cropStartX + cropWidth > canvas.width) cropStartX = canvas.width - cropWidth;
+        if (cropStartY + cropHeight > canvas.height) cropStartY = canvas.height - cropHeight;
+
+        // Piirrä rajausalue uudelleen
+        const ctx = canvas.getContext('2d');
+        drawCropBox(ctx, cropStartX, cropStartY, cropWidth, cropHeight);
+    }
+
+    // Lisää tapahtumankäsittelijä napille
+    document.getElementById('squareCrop').addEventListener('click', makeSquare);
+
+</script>
+
+</body>
+
+</html>

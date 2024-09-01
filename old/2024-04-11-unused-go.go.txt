@@ -1,0 +1,410 @@
+// In main func, print group_rights table values
+// // var iterations = 100
+// // var slowDown = 100000
+// // compareRightsCheckSpeed(772, 6, 22, iterations, slowDown)
+// Define routes
+// Admin Panel Handlers
+
+// func convertAndResizeToJPG(pngPath string, newWidth int) {
+// 	// Avataan PNG-tiedosto
+// 	file, err := os.Open(pngPath)
+// 	if err != nil {
+// 		fmt.Println("Virhe avattaessa tiedostoa:", err)
+// 		return
+// 	}
+// 	defer file.Close()
+
+// 	// Ladataan PNG-tiedoston kuva
+// 	img, _, err := image.Decode(file)
+// 	if err != nil {
+// 		fmt.Println("Virhe dekoodattaessa kuvaa:", err)
+// 		return
+// 	}
+
+// 	// Lasketaan uusi korkeus säilyttäen kuvasuhde
+// 	bounds := img.Bounds()
+// 	width := bounds.Dx()
+// 	height := bounds.Dy()
+// 	newHeight := (height * newWidth) / width
+
+// 	// Skaalataan kuva uuteen kokoon
+// 	newImg := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
+// 	draw.CatmullRom.Scale(newImg, newImg.Bounds(), img, bounds, draw.Over, nil)
+
+// 	// Luodaan uusi tiedostonimi JPG:lle
+// 	jpgPath := strings.TrimSuffix(pngPath, filepath.Ext(pngPath)) + ".jpg"
+
+// 	// Luodaan uusi JPG-tiedosto
+// 	out, err := os.Create(jpgPath)
+// 	if err != nil {
+// 		fmt.Println("Virhe luotaessa JPG-tiedostoa:", err)
+// 		return
+// 	}
+// 	defer out.Close()
+
+// 	// Tallennetaan kuva JPG-muodossa
+// 	jpeg.Encode(out, newImg, &jpeg.Options{Quality: 100})
+// 	fmt.Println("Muunnettu ja skaalattu:", jpgPath)
+// }
+
+// // func compareRightsCheckSpeed(userID, groupID, checkRightID, iterations, slowDown int) {
+// // 	// startTime := time.Now() // Nollataan aloitusaika
+// // 	// for i := 0; i < iterations; i++ {
+// // 	// // Tallenna avain-arvo -parit
+// // 	// err := rdb.Set(ctx, "1", "a", 0).Err()
+// // 	// if err != nil {
+// // 	// 	log.Fatalf("Could not set key: %v", err)
+// // 	// }
+// // 	// err = rdb.Set(ctx, "2", "b", 0).Err()
+// // 	// if err != nil {
+// // 	// 	log.Fatalf("Could not set key: %v", err)
+// // 	// }
+// // 	// err = rdb.Set(ctx, "3", "c", 0).Err()
+// // 	// if err != nil {
+// // 	// 	log.Fatalf("Could not set key: %v", err)
+// // 	// }
+
+// // 	// // Testaa, että arvot tallentuivat oikein
+// // 	// val, err := rdb.Get(ctx, "1").Result()
+// // 	// if err != nil {
+// // 	// 	log.Fatalf("Could not get key: %v", err)
+// // 	// }
+// // 	// log.Printf("key 1: %v", val)
+
+// // 	// val, err = rdb.Get(ctx, "2").Result()
+// // 	// if err != nil {
+// // 	// 	log.Fatalf("Could not get key: %v", err)
+// // 	// }
+// // 	// log.Printf("key 2: %v", val)
+
+// // 	// 	val, err := rdb.Get(ctx, "3").Result()
+// // 	// 	if err != nil {
+// // 	// 		log.Fatalf("Could not get key: %v", err)
+// // 	// 	}
+// // 	// 	_ = val
+// // 	// }
+// // 	// fmt.Printf("Time for from Redis: %s (ran %d times)\n", time.Since(startTime), iterations)
+
+// // 	// Luuppi tiedoston lukemista varten
+// // 	var maintenanceMode string // Muuttuja ulkopuolella
+// // 	startTime := time.Now()    // Nollataan aloitusaika
+// // 	for i := 0; i < iterations; i++ {
+// // 		content, err := ioutil.ReadFile("m.txt")
+// // 		if err != nil {
+// // 			log.Fatalf("Error reading maintenance-mode file: %v", err)
+// // 		}
+// // 		maintenanceMode = strings.TrimSpace(string(content))
+// // 		// Tehdään jotain maintenanceMode-arvon kanssa, jotta Go ei valita
+// // 		_ = maintenanceMode
+// // 	}
+// // 	// fmt.Printf("Last maintenance mode value: %s\n", maintenanceMode)
+// // 	fmt.Printf("Time for reading maintenance mode file: %s (ran %d times)\n", time.Since(startTime), iterations)
+
+// // 	/////////////////////////////////
+// // 	var user1Status, user2Status string // Muuttujat ulkopuolella
+// // 	startTime = time.Now()
+// // 	for i := 0; i < iterations; i++ {
+// // 		rows, err := database.Query("SELECT id, status FROM users WHERE id IN (111, 222)") // Oletetaan, että haettavien käyttäjien ID:t ovat 1 ja 2
+// // 		if err != nil {
+// // 			log.Fatalf("Error querying user statuses: %v\n", err)
+// // 		}
+
+// // 		for rows.Next() {
+// // 			var id int
+// // 			var status string
+// // 			if err := rows.Scan(&id, &status); err != nil {
+// // 				log.Fatal(err)
+// // 			}
+
+// // 			switch id {
+// // 			case 111:
+// // 				user1Status = status
+// // 			case 222:
+// // 				user2Status = status
+// // 			}
+// // 		}
+// // 		rows.Close()
+
+// // 		// Tehdään jotain status-arvojen kanssa, jotta Go ei valita
+// // 		_ = user1Status
+// // 		_ = user2Status
+// // 	}
+
+// // 	// Tulosta käyttäjien statukset ja aika
+// // 	// fmt.Printf("Last status for user 1: %s\n", user1Status)
+// // 	// fmt.Printf("Last status for user 2: %s\n", user2Status)
+// // 	fmt.Printf("Time for DB user status checks: %s (ran %d times)\n", time.Since(startTime), iterations)
+// // 	/////////////////////////////////
+// // 	/////
+// // 	var shouldUpdate, anotherFlag bool // Muuttujat ulkopuolella
+
+// // 	startTime = time.Now()
+// // 	for i := 0; i < iterations; i++ {
+// // 		rows, err := database.Query("SELECT key, value FROM config_flags WHERE key IN ('rights_update_immediately', 'rights_update_immediate')")
+// // 		if err != nil {
+// // 			log.Fatalf("Error querying flags: %v\n", err)
+// // 		}
+
+// // 		for rows.Next() {
+// // 			var key string
+// // 			var value bool
+// // 			if err := rows.Scan(&key, &value); err != nil {
+// // 				log.Fatal(err)
+// // 			}
+
+// // 			switch key {
+// // 			case "rights_update_immediately":
+// // 				shouldUpdate = value
+// // 			case "some_other_flag":
+// // 				anotherFlag = value
+// // 			}
+// // 		}
+// // 		rows.Close()
+
+// // 		// Tehdään jotain lippujen kanssa, jotta Go ei valita
+// // 		_ = shouldUpdate
+// // 		_ = anotherFlag
+// // 	}
+
+// // 	// Tulosta lippujen arvot ja aika
+// // 	// fmt.Printf("Last value for shouldUpdate flag: %v\n", shouldUpdate)
+// // 	// fmt.Printf("Last value for anotherFlag: %v\n", anotherFlag)
+// // 	fmt.Printf("Time for DB flag checks: %s (ran %d times)\n", time.Since(startTime), iterations)
+// // 	/////
+
+// // 	////////////
+// // 	startTime = time.Now()
+// // 	for i := 0; i < iterations; i++ {
+// // 		// Haetaan tieto users-taulusta
+// // 		err := database.QueryRow("SELECT status FROM users WHERE id = 111").Scan(&user1Status)
+// // 		if err != nil && err != sql.ErrNoRows {
+// // 			log.Fatalf("Error querying user status: %v\n", err)
+// // 		}
+
+// // 		// Haetaan tieto config_flags-taulusta
+// // 		err = database.QueryRow("SELECT value FROM config_flags WHERE key = 'rights_update_immediately'").Scan(&shouldUpdate)
+// // 		if err != nil && err != sql.ErrNoRows {
+// // 			log.Fatalf("Error querying flags: %v\n", err)
+// // 		}
+
+// // 		// Tehdään jotain arvojen kanssa
+// // 		_ = user1Status
+// // 		_ = shouldUpdate
+// // 	}
+// // 	// Tulostetaan saadut arvot ja aika
+// // 	// fmt.Printf("Last status for user 1: %s\n", user1Status)
+// // 	// fmt.Printf("Last value for shouldUpdate flag: %v\n", shouldUpdate)
+// // 	fmt.Printf("Time for DB checks: %s (ran %d times)\n", time.Since(startTime), iterations)
+// // 	////////////
+
+// // 	// Ryhmän oikeuden tarkistus tietokannan group rights -taulusta
+// // 	startTime = time.Now()
+// // 	var hasRight bool // Siirrä tämä ulkopuolelle
+// // 	for i := 0; i < iterations; i++ {
+// // 		err := database.QueryRow("SELECT 1 FROM group_rights WHERE group_id = $1 AND right_id = $2", groupID, checkRightID).Scan(&hasRight)
+// // 		if err != nil && err != sql.ErrNoRows {
+// // 			log.Fatalf("Error querying group_rights: %v\n", err)
+// // 		}
+// // 	}
+// // 	// Tulosta hasRight-muuttujan arvo ennen aikaa
+// // 	// fmt.Printf("Last value for group having the right: %v\n", hasRight)
+// // 	fmt.Printf("Time for group rights DB check: %s (ran %d times)\n", time.Since(startTime), iterations)
+
+// // 	// Ryhmän oikeuksien hakeminen group rights -taulusta Go:n sliceen
+// // 	var rightsArray []int // Move this outside of the loop
+// // 	startTime = time.Now()
+// // 	for i := 0; i < iterations; i++ {
+// // 		rightsArray = rightsArray[:0]
+// // 		rows, err := database.Query("SELECT right_id FROM group_rights WHERE group_id = $1", groupID)
+// // 		if err != nil {
+// // 			log.Fatalf("Error querying group_rights: %v\n", err)
+// // 		}
+// // 		for rows.Next() {
+// // 			var rightID int
+// // 			if err := rows.Scan(&rightID); err != nil {
+// // 				log.Fatal(err)
+// // 			}
+// // 			rightsArray = append(rightsArray, rightID) // Populating rightsArray
+// // 		}
+// // 		rows.Close()
+// // 	}
+// // 	// Do something with rightsArray to make sure it's used.
+// // 	_ = len(rightsArray) // Use it, so Go doesn't complain.
+// // 	// fmt.Printf("Last size of rightsArray: %d\n", len(rightsArray))
+// // 	fmt.Printf("Time for fetching group rights into Go array: %s (ran %d times)\n", time.Since(startTime), iterations)
+
+// // 	// Tarkistus Go:n slice-arraystä, onko käyttäjällä oikeus
+// // 	startTime = time.Now()
+// // 	var hasRight2 bool // Siirretään ulkopuolelle
+// // 	for i := 0; i < iterations*slowDown; i++ {
+// // 		for _, rightID := range rightsArray {
+// // 			if rightID == checkRightID {
+// // 				hasRight2 = true
+// // 				break
+// // 			}
+// // 		}
+// // 		// Tehdään jotain hasRight2-muuttujalla, jotta Go ei valita.
+// // 		_ = hasRight2
+// // 	}
+// // 	// Tulosta hasRight2 arvo
+// // 	// fmt.Printf("Last value for group having the right: %v\n", hasRight2)
+// // 	fmt.Printf("Time for group rights check in Go array: %s (ran %d times)\n", time.Since(startTime), (iterations * slowDown))
+
+// // 	// Tarkistus kannasta, onko käyttäjä tietyssä ryhmässä
+// // 	startTime = time.Now()
+// // 	var inGroup bool // Siirretään ulkopuolelle
+// // 	for i := 0; i < iterations; i++ {
+// // 		err := database.QueryRow("SELECT 1 FROM group_members WHERE user_id = $1 AND group_id = $2", userID, groupID).Scan(&inGroup)
+// // 		if err != nil && err != sql.ErrNoRows {
+// // 			log.Fatalf("Error querying group_members: %v\n", err)
+// // 		}
+// // 	}
+// // 	// Tulosta inGroup arvo
+// // 	// fmt.Printf("Last value for user being in the group: %v\n", inGroup)
+// // 	fmt.Printf("Time for user group membership DB check: %s (ran %d times)\n", time.Since(startTime), iterations)
+
+// // 	// Tarkistus materialisoidusta näkymästä, onko käyttäjällä oikeus
+// // 	startTime = time.Now()
+// // 	var hasRight3 bool
+// // 	for i := 0; i < iterations; i++ {
+// // 		err := database.QueryRow("SELECT 1 FROM user_rights WHERE user_id = $1 AND right_id = $2", userID, checkRightID).Scan(&hasRight3)
+// // 		if err != nil && err != sql.ErrNoRows {
+// // 			log.Fatalf("Error querying user_rights_materialized_view: %v\n", err)
+// // 		}
+// // 	}
+// // 	// Tulosta hasRight3 arvo
+// // 	// fmt.Printf("Last value for user having the right from materialized view: %v\n", hasRight3)
+// // 	fmt.Printf("Time for materialized view rights check: %s (ran %d times)\n", time.Since(startTime), iterations)
+
+// // 	// Tarkistus materialisoidusta näkymästä, onko käyttäjällä oikeus ja sen siirtäminen Go-taulukkoon
+// // 	var userRightsArray []int
+// // 	startTime = time.Now()
+// // 	for i := 0; i < iterations; i++ {
+// // 		userRightsArray = userRightsArray[:0]
+// // 		rows, err := database.Query("SELECT right_id FROM user_rights WHERE user_id = $1", userID)
+// // 		if err != nil {
+// // 			log.Fatalf("Error querying user_rights_materialized_view: %v\n", err)
+// // 		}
+// // 		for rows.Next() {
+// // 			var rightID int
+// // 			if err := rows.Scan(&rightID); err != nil {
+// // 				log.Fatal(err)
+// // 			}
+// // 			userRightsArray = append(userRightsArray, rightID)
+// // 		}
+// // 		rows.Close()
+// // 	}
+// // 	// Käytetään userRightsArrayta, jotta Go ei valita.
+// // 	_ = len(userRightsArray)
+// // 	// fmt.Printf("Last size of userRightsArray: %d\n", len(userRightsArray))
+// // 	fmt.Printf("Time for fetching materialized view rights into Go array: %s (ran %d times)\n", time.Since(startTime), iterations)
+
+// // 	// Tarkistus Go:n userRightsArray-arraystä, onko käyttäjällä oikeus
+// // 	startTime = time.Now()
+// // 	var hasUserRight bool
+// // 	for i := 0; i < iterations*slowDown; i++ {
+// // 		for _, rightID := range userRightsArray {
+// // 			if rightID == checkRightID {
+// // 				hasUserRight = true
+// // 				break
+// // 			}
+// // 		}
+// // 		// Tehdään jotain hasUserRight-muuttujalla, jotta Go ei valita.
+// // 		_ = hasUserRight
+// // 	}
+// // 	// Tulosta hasUserRight arvo
+// // 	// fmt.Printf("Last value for user having the right from Go array: %v\n", hasUserRight)
+// // 	fmt.Printf("Time for rights check in userRightsArray: %s (ran %d times)\n", time.Since(startTime), (iterations * slowDown))
+
+// // 	startTime = time.Now() // Nollataan aloitusaika
+// // 	for i := 0; i < iterations; i++ {
+// // 		// // Tallenna avain-arvo -parit
+// // 		// err := rdb.Set(ctx, "1", "a", 0).Err()
+// // 		// if err != nil {
+// // 		// 	log.Fatalf("Could not set key: %v", err)
+// // 		// }
+// // 		// err = rdb.Set(ctx, "2", "b", 0).Err()
+// // 		// if err != nil {
+// // 		// 	log.Fatalf("Could not set key: %v", err)
+// // 		// }
+// // 		// err = rdb.Set(ctx, "3", "c", 0).Err()
+// // 		// if err != nil {
+// // 		// 	log.Fatalf("Could not set key: %v", err)
+// // 		// }
+
+// // 		// // Testaa, että arvot tallentuivat oikein
+// // 		// val, err := rdb.Get(ctx, "1").Result()
+// // 		// if err != nil {
+// // 		// 	log.Fatalf("Could not get key: %v", err)
+// // 		// }
+// // 		// log.Printf("key 1: %v", val)
+
+// // 		// val, err = rdb.Get(ctx, "2").Result()
+// // 		// if err != nil {
+// // 		// 	log.Fatalf("Could not get key: %v", err)
+// // 		// }
+// // 		// log.Printf("key 2: %v", val)
+
+// // 		val, err := rdb.Get(ctx, "3").Result()
+// // 		if err != nil {
+// // 			log.Fatalf("Could not get key: %v", err)
+// // 		}
+// // 		_ = val
+// // 	}
+// // 	fmt.Printf("Time for from Redis: %s (ran %d times)\n", time.Since(startTime), iterations)
+// // }
+
+// func randomPhoneNumber() string {
+// 	return fmt.Sprintf("+%010d", mathRand.Int63n(9999999999))
+// }
+
+// func createUsers(database *sql.DB, count int) {
+// 	stmt, err := database.Prepare(`INSERT INTO users (
+// 		username, email, password_hash, created_at, updated_at, status, bio, phone_number
+// 	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`)
+
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer stmt.Close()
+
+// 	for i := 1; i <= count; i++ {
+// 		username := fmt.Sprintf("user%d", i)
+// 		email := fmt.Sprintf("user%d@email.com", i)
+// 		passwordHash := "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
+// 		createdAt := time.Now()
+// 		updatedAt := createdAt
+// 		status := "active"
+// 		bio := "id838"
+// 		phoneNumber := randomPhoneNumber()
+
+// 		_, err := stmt.Exec(username, email, passwordHash, createdAt, updatedAt, status, bio, phoneNumber)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 	}
+// }
+
+// Location
+	// placeID := "here:af:street:1LuOvUFyxrhs0yWJgmzU2C" // Esimerkki ID
+	// details, err := backend.GetPlaceDetails(placeID)
+	// if err != nil {
+	// 	log.Fatalf("Virhe hakiessa paikan yksityiskohtia: %v", err)
+	// }
+	// fmt.Printf("Paikan nimi: %s\n", details["title"])
+	// address := details["address"].(map[string]interface{})
+	// fmt.Printf("Label: %s\n", address["label"])
+
+	// fmt.Printf("Katu: %s\n", address["street"])
+	// fmt.Printf("Kaupunginosa: %s\n", address["district"])
+	// fmt.Printf("Postinumero: %s\n", address["postalCode"])
+	// fmt.Printf("Kaupunki: %s\n", address["city"])
+	// fmt.Printf("Maakunta: %s\n", address["county"])
+	// fmt.Printf("Osavaltio: %s\n", details["address"].(map[string]interface{})["state"])
+	// fmt.Printf("Osavaltion koodi: %s\n", address["stateCode"])
+	// fmt.Printf("Maa: %s\n", details["address"].(map[string]interface{})["countryName"])
+	// fmt.Printf("Maakoodi: %s\n", address["countryCode"])
+
+	// fmt.Printf("Koordinaatit: Lat %v, Lng %v\n",
+	// 	details["position"].(map[string]interface{})["lat"],
+	// 	details["position"].(map[string]interface{})["lng"])

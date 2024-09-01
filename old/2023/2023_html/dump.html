@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		/* Example CSS for dark mode */
+		li[data-assets]::after {
+			content: " (" attr(data-assets) ")";
+			color: white;
+		}
+	</style>
+</head>
+
+<body style="background-color: black;">
+	<ul>
+		<li data-assets="13">Item 1</li>
+		<li data-assets="5">Item 2</li>
+	</ul>
+</body>
+
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adjustable Blur and Opacity Soft Light Effect on Image</title>
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #333;
+        color: white;
+        font-family: Arial, sans-serif;
+    }
+    canvas {
+        display: none;
+    }
+    img {
+        max-width: 90%;
+        max-height: 80vh;
+        border: 5px solid #fff;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        margin-top: 20px;
+    }
+    input, label {
+        margin: 10px;
+    }
+    .slider-label {
+        display: block;
+    }
+</style>
+</head>
+<body>
+<input type="file" id="fileInput" accept="image/*">
+<img id="preview" alt="Upload an Image">
+<canvas id="canvas"></canvas>
+<label for="blurIntensity" class="slider-label">Adjust Blur Intensity (pixels):</label>
+<input type="range" id="blurIntensity" min="0" max="20" step="0.1" value="8" style="width: 300px;">
+<label for="opacityLevel" class="slider-label">Adjust Opacity Level:</label>
+<input type="range" id="opacityLevel" min="0" max="1" step="0.01" value="0.5" style="width: 300px;">
+<script>
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const blurIntensity = document.getElementById('blurIntensity');
+const opacityLevel = document.getElementById('opacityLevel');
+let originalImageData = ''; // Store the original image data
+
+fileInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            originalImageData = e.target.result; // Save the original image data
+            const img = new Image();
+            img.onload = function() {
+                applySoftLight(img, blurIntensity.value, opacityLevel.value);
+            };
+            img.src = originalImageData;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+blurIntensity.addEventListener('input', function() {
+    updateEffect();
+});
+
+opacityLevel.addEventListener('input', function() {
+    updateEffect();
+});
+
+function updateEffect() {
+    const img = new Image();
+    img.onload = function() {
+        applySoftLight(img, blurIntensity.value, opacityLevel.value);
+    };
+    img.src = originalImageData; // Use the stored original image data
+}
+
+function applySoftLight(img, blurPx, opacity) {
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // Draw the original image
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Ensure the canvas is clear
+    ctx.drawImage(img, 0, 0);
+
+    // Create soft light effect by applying a blur
+    ctx.globalAlpha = parseFloat(opacity); // Adjust the intensity of the overlay
+    ctx.filter = `blur(${blurPx}px)`;
+    ctx.drawImage(img, 0, 0);
+
+    // Remove the blur effect for future operations
+    ctx.filter = 'none';
+    ctx.globalAlpha = 1; // Reset alpha to avoid affecting further operations
+
+    // Update the image src to display the soft light effect
+    preview.src = canvas.toDataURL();
+}
+</script>
+</body>
+</html>

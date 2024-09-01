@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Toolkit</title>
+    <style>
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+}
+
+.tabs {
+    width: 200px;
+    background-color: #007BFF;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0; /* Estää liiallisen kutistumisen */
+}
+
+.tab {
+    padding: 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #0056b3;
+    text-align: left;
+    white-space: nowrap; /* Estää rivinvaihdot */
+}
+
+.tab:hover {
+    background-color: #0056b3;
+}
+
+.tab.active {
+    background-color: #0056b3;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden; /* Estää elementtien leviämisen sivulle */
+}
+
+.category {
+    flex-grow: 1;
+    display: none;
+    max-width: 100%; /* Kiinteä maksimi leveys sisältöalueelle */
+}
+
+.category.active {
+    display: block;
+}
+
+.filter {
+    width: 250px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-left: 1px solid #ccc;
+    flex-shrink: 0; /* Estää liiallisen kutistumisen */
+}
+
+.filter h3 {
+    margin-top: 0;
+    white-space: nowrap; /* Estää rivinvaihdot */
+}
+
+.tool {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Sisältää paddingin ja borderin leveydessä */
+    word-wrap: break-word; /* Tekstin automaattinen rivinvaihto kapeissa tiloissa */
+}
+
+.tool.tips {
+    border: 2px solid #007BFF; /* Sininen ääriviiva Vinkeille */
+}
+
+.tool.readyAnswers {
+    border: 2px solid #28A745; /* Vihreä ääriviiva Valmisvastauksille */
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.challenge {
+    border-left: 4px solid #881515; /* Punainen ääriviiva haastavalle kommentille */
+    padding-left: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #881515;
+	margin-bottom: 10px;
+}
+
+.response {
+    border-left: 4px solid #28A745; /* Vihreä ääriviiva positiiviselle vastaukselle */
+    padding-left: 10px;
+    color: #155724;
+	margin-bottom: 10px;
+}
+
+.tool.exercises {
+    border: 2px solid #FFC107; /* Keltainen ääriviiva Harjoitustehtäville */
+}
+
+/* Värikoodatut labelit korkeammalla kontrastilla */
+.tips-label {
+    color: #004085; /* Tumma sininen */
+    font-weight: bold;
+}
+
+.readyAnswers-label {
+    color: #155724; /* Tumma vihreä */
+    font-weight: bold;
+}
+
+.exercises-label {
+    color: #856404; /* Tumma keltainen/ruskea */
+    font-weight: bold;
+}
+
+
+    </style>
+</head>
+<body>
+
+    <div class="tabs">
+        <div class="tab" onclick="showCategory('ajanhallinta')">Ajanhallinta</div>
+        <div class="tab" onclick="showCategory('stressinhallinta')">Stressinhallinta</div>
+        <div class="tab" onclick="showCategory('taloudenhallinta')">Taloudenhallinta</div>
+        <div class="tab" onclick="showCategory('ihmissuhteet')">Ihmissuhteet</div>
+        <div class="tab" onclick="showCategory('motivaatio')">Motivaatio ja tavoitteet</div>
+    </div>
+
+    <div class="content">
+        <div id="ajanhallinta" class="category">
+            <h2>Ajanhallinta</h2>
+            <div class="tool tips">Vinkki: Käytä Pomodoro-tekniikkaa, jossa työskentelet 25 minuuttia ja pidät 5 minuutin tauon. Toista tämä neljä kertaa ennen pidempää taukoa.</div>
+            
+<div class="tool readyAnswers">
+    <div class="challenge">Ehkä olisi aika saada jotain konkreettista aikaan tänään, vai mitä?</div>
+    <div class="response">Voisitko hieman tarkentaa, mitä ihan tarkalleen ottaen haluat minun tekevän?</div>
+	<div class="response">Olen jo aloittanut tehtävät, ja pystyn edistymään niissä suunnitellusti. Jos on jotain muuta erityistä, mihin haluat minun keskittyvän, kuuntelisin mielelläni.</div>
+	<div class="response">Olen tietoinen tehtävistäni ja hoidan ne loppuun aikataulun mukaisesti.</div>
+</div>
+
+<div class="tool readyAnswers">
+    <div class="challenge">Voi olla hyvä idea harkita, miten voisit käyttää aikaasi hieman tehokkaammin tänään.</div>
+    <div class="response">Arvostan ehdotusta. Voisitko antaa esimerkin siitä, mihin haluaisit minun keskittyvän, jotta voimme varmistaa parhaat tulokset?</div>
+    <div class="response">Aikataulustani suurin osa on ja varattu kriittisille tehtäville, ja nämä ovat eri tehtäviä.</div>
+	<div class="response">Työpaikalla: On mahdollista, että työtehtäviäni tarvitsisi priorisoida uudelleen. Tästä olisi ehkä helpompi jutella niin, että mukana ovat meidän esimiehet ja johtava asiantuntija. ?</div>
+</div>
+
+
+			
+            <div class="tool exercises">Harjoitustehtävä: Kokeile kalenterointia, jossa varaat aikaa tärkeille tehtäville ja joustat suunnitelmissa tarvittaessa.</div>
+        </div>
+
+        <div id="stressinhallinta" class="category">
+            <h2>Stressinhallinta</h2>
+            <div class="tool tips">Vinkki: Varaa päivittäin aikaa lyhyeen mindfulness-harjoitukseen vähentääksesi stressiä.</div>
+            <div class="tool readyAnswers">Valmisvastaus: Sinun pitäisi oppia hallitsemaan stressiä paremmin. — **Olen yhä rauhallisempi ja hallitsen stressiäni paremmin joka päivä.**</div>
+            <div class="tool exercises">Harjoitustehtävä: Harjoittele syvään hengittämistä. Sisään 4 sekuntia, pidätä 4 sekuntia, ulos 4 sekuntia, pidätä 4 sekuntia.</div>
+        </div>
+
+        <div id="taloudenhallinta" class="category">
+            <h2>Taloudenhallinta</h2>
+            <div class="tool tips">Vinkki: Seuraa tuloja ja menoja budjetointityökalun avulla, kuten Excel tai sovellus.</div>
+            <div class="tool readyAnswers">Valmisvastaus: Sinun pitäisi säästää enemmän rahaa. — **Teen viisaita taloudellisia päätöksiä ja parannan taloudenhallintaani joka päivä.**</div>
+            <div class="tool exercises">Harjoitustehtävä: Käytä velkojen lumipallomenetelmää maksamalla ensin pienimmät velat pois.</div>
+        </div>
+
+        <div id="ihmissuhteet" class="category">
+            <h2>Ihmissuhteet</h2>
+            <div class="tool tips">Vinkki: Pidä säännöllinen yhteydenpito ystävien ja perheen kanssa.</div>
+            <div class="tool readyAnswers">Valmisvastaus: Sinun pitäisi olla parempi kuuntelija. — **Kehityn aktiivisena kuuntelijana ja parannan ihmissuhteitani joka päivä.**</div>
+            <div class="tool exercises">Harjoitustehtävä: Käytä "minä"-viestejä ("Minusta tuntuu, että...") konfliktien hallinnassa.</div>
+        </div>
+
+        <div id="motivaatio" class="category">
+            <h2>Motivaatio ja tavoitteet</h2>
+            <div class="tool tips">Vinkki: Luo visuaalinen taulu tavoitteistasi, esim. Pinterest tai fyysinen leikepöytä.</div>
+            <div class="tool readyAnswers">Valmisvastaus: Sinun pitäisi asettaa tavoitteita ja pysyä niissä. — **Pystyn saavuttamaan tavoitteeni ja olen motivoituneempi joka päivä.**</div>
+            <div class="tool exercises">Harjoitustehtävä: Kirjoita ja toista päivittäin positiivisia affirmaatioita, jotka tukevat tavoitteitasi.</div>
+        </div>
+    </div>
+
+    <div class="filter">
+        <h3>Suodattimet</h3>
+        <div>
+            <input type="checkbox" id="tips" name="filter" value="tips" onclick="filterTools()">
+            <label for="tips" class="tips-label">Vinkit</label>
+        </div>
+        <div>
+            <input type="checkbox" id="readyAnswers" name="filter" value="readyAnswers" onclick="filterTools()">
+            <label for="readyAnswers" class="readyAnswers-label">Valmisvastaukset</label>
+        </div>
+        <div>
+            <input type="checkbox" id="exercises" name="filter" value="exercises" onclick="filterTools()">
+            <label for="exercises" class="exercises-label">Harjoitustehtävät</label>
+        </div>
+    </div>
+
+    <script>
+        function showCategory(categoryId) {
+            const categories = document.querySelectorAll('.category');
+            const tabs = document.querySelectorAll('.tab');
+
+            categories.forEach(category => {
+                if (category.id === categoryId) {
+                    category.classList.add('active');
+                } else {
+                    category.classList.remove('active');
+                }
+            });
+
+            tabs.forEach(tab => {
+                if (tab.innerText.toLowerCase().replace(/[^a-z]/g, '') === categoryId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            filterTools(); // Filter tools based on the selected category
+        }
+
+        function filterTools() {
+            const showTips = document.getElementById('tips').checked;
+            const showReadyAnswers = document.getElementById('readyAnswers').checked;
+            const showExercises = document.getElementById('exercises').checked;
+
+            const anyChecked = showTips || showReadyAnswers || showExercises;
+
+            document.querySelectorAll('.tool').forEach(tool => {
+                const isTip = tool.classList.contains('tips');
+                const isReadyAnswer = tool.classList.contains('readyAnswers');
+                const isExercise = tool.classList.contains('exercises');
+                
+                if (anyChecked) {
+                    tool.style.display = 
+                        ((isTip && showTips) || 
+                        (isReadyAnswer && showReadyAnswers) || 
+                        (isExercise && showExercises)) ? 
+                        'block' : 'none';
+                } else {
+                    tool.style.display = 'block';
+                }
+            });
+        }
+
+        // Show the first category by default
+        showCategory('ajanhallinta');
+    </script>
+
+</body>
+</html>

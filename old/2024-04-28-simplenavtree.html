@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {box-sizing: border-box}
+body {font-family: "Lato", sans-serif; margin:0;}
+
+/* Style the navtab */
+.navtab {
+  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  /* border-right: 1px solid #ccc; */
+  background-color: #f1f1f1;
+  width: 300px;
+  height: 100vh; /* Full-height */
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 20px;
+}
+
+/* Style the buttons inside the navtab */
+.navtab button {
+  display: block;
+  background-color: inherit;
+  color: black;
+  padding: 22px 16px;
+  width: 95%;
+  margin-left: calc(5% + 2px);
+  z-index:1000;
+  border: none;
+  outline: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 17px;
+
+  border-top-left-radius: 7px;
+  border-bottom-left-radius: 7px;
+  border: 4px solid transparent;
+  border-right: unset;
+}
+
+/* Change background color of buttons on hover */
+.navtab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current "navtab button" class */
+.navtab button.active {
+  border: 4px solid skyblue;
+  border-right: unset;
+  background-color: #fff;
+}
+
+/* Style the navtab content. Note that it needs to start to the right of the sidebar */
+.navtabcontent {
+  margin-left: 300px; /* Same as the width of the sidebar */
+  padding: 0px 12px;
+  /* border: 1px solid #ccc; */
+  height: 100vh; /* Could be more or less, depending on screen size */
+  /* width: calc(100% - 300px); */
+}
+</style>
+</head>
+<body>
+
+<div class="navtab">
+  <h3>Services</h3>
+  <button class="navtablinks" onclick="opennavTab(event, 'Browse')" id="defaultOpen">Browse services</button>
+  <button class="navtablinks" onclick="opennavTab(event, 'Add new')">Add a new service</button>
+  <button class="navtablinks" onclick="opennavTab(event, 'My services')">My services</button>
+  
+  <h3>Settings</h3>
+  <button class="navtablinks" onclick="opennavTab(event, 'Search')">Search for settings</button>
+  <button class="navtablinks" onclick="opennavTab(event, 'Account and security')">Account and security settings</button>
+  <button class="navtablinks" onclick="opennavTab(event, 'Display')">Display settings</button>
+</div>
+
+<!-- Content for Cities -->
+<div id="Browse" class="navtabcontent">
+  <h3>Browse</h3>
+  <p>Browse is the capital city of England.</p>
+</div>
+
+<div id="Add new" class="navtabcontent">
+  <h3>Add new</h3>
+  <p>Add new is the capital of France.</p> 
+</div>
+
+<div id="My services" class="navtabcontent">
+  <h3>My services</h3>
+  <p>My services is the capital of Japan.</p>
+</div>
+
+<!-- Content for Residents -->
+<div id="Search" class="navtabcontent">
+  <h3>Search</h3>
+  <p>Information about Search living in the city.</p>
+</div>
+
+<div id="Account and security" class="navtabcontent">
+  <h3>Account and security</h3>
+  <p>Account and security settings</p>
+</div>
+
+<div id="Display" class="navtabcontent">
+  <h3>Display</h3>
+  <p>Details about the retired community.</p>
+</div>
+
+<script>
+function opennavTab(evt, navtabName) {
+  var i, navtabcontent, navtablinks;
+  navtabcontent = document.getElementsByClassName("navtabcontent");
+  for (i = 0; i < navtabcontent.length; i++) {
+    navtabcontent[i].style.display = "none";
+  }
+  navtablinks = document.getElementsByClassName("navtablinks");
+  for (i = 0; i < navtablinks.length; i++) {
+    navtablinks[i].className = navtablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(navtabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+   
+</body>
+</html> 

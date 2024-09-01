@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jsTree Sijainti Synkronointi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
+
+</head>
+
+<body>
+
+    <h2>Pääpalvelun Sijainnit</h2>
+    <div id="mainServiceTree"></div>
+
+    <!-- <input type="text" id="newTreeIdInput" placeholder="Anna tuote-ID" /> -->
+
+    <button id="addTree">Lisää uusi Palvelun Sijaintipuu</button>
+    <button id="syncSelectionsButton">Synkronoi valinnat</button>
+
+
+
+    <h2>Alipalvelu 1:n Sijainnit</h2>
+    <div id="serviceTree1" class="productTree"></div>
+
+    <h2>Alipalvelu 2:n Sijainnit</h2>
+    <div id="serviceTree2" class="productTree"></div>
+
+    <div id="serviceTrees">
+
+    </div>
+
+    <script>
+        $(function () {
+            var treeCounter = 3;
+
+            // Oletettu sijaintidata pääpalvelulle
+            var mainServiceLocations = [
+                { "id": "location1", "parent": "#", "text": "Sijainti 1" },
+                { "id": "location2", "parent": "#", "text": "Sijainti 2" }
+                // Lisää sijainteja tarvittaessa
+            ];
+
+            // Kontekstivalikon toiminnot
+            // Globaalit funktiot alisolmujen lisäämiseksi ja poistamiseksi
+            function addSubNode(treeId, parentNodeId) {
+                var tree = $("#" + treeId).jstree(true);
+                tree.create_node(parentNodeId, { "text": "Uusi Alisolmu" });
+            }
+
+            function removeSubNode(treeId, nodeId) {
+                var tree = $("#" + treeId).jstree(true);
+                tree.delete_node(nodeId);
+            }
+
+            function checkAndRemoveParent(tree, nodeId) {
+                var parent = tree.get_parent(nodeId);
+                if (parent && parent !== "#") { // Varmista, ettei yritetä poistaa juurisolmua.
+                    var siblings = tree.get_children_dom(parent);
+                    if (siblings.length === 1 && siblings[0].id === nodeId) { // Jos ei ole muita lapsia.
+                        tree.delete_node(parent);
+                        checkAndRemoveParent(tree, parent); // Tarkista rekursiivisesti vanhempia.
+                    }
+                }
+            }
+
+            // Päivitä poistofunktio käyttämään tarkistusta.
+            function removeSubNode(treeId, nodeId) {
+                var tree = $("#" + treeId).jstree(true);
+                checkAndRemoveParent(tree, nodeId); // Aloita tarkistus poistetusta solmusta.
+                tree.delete_node(nodeId); // Poista sitten valittu solmu.
+            }
+
+
+            // Kontekstivalikon toiminnot
+            var customMenu = function (node) {
+                var tree = $("#mainServiceTree").jstree(true);
+                return {
+                    "Sync": {
+                        "separator_before": true,
+                        "separator_after": false,
+                        "label": "Synkronoi solmu",
+                        "action": function (obj) {
+                            // Synkronoi valittu solmu
+                            syncNodeSelection(node.id);
+                        }
+                    },
+                    "Create": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "Luo uusi",
+                        "action": function (obj) {
+                            tree.create_node(node.id, { text: "Uusi Sijainti", type: "file" });
+                        }
+                    },
+                    "AddSub": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "Lisää alisolmu",
+                        "action": function (obj) {
+                            addSubNode("mainServiceTree", node.id);
+                            updateProductTrees(); // Päivittää muut puut
+                        }
+                    },
+                    "RemoveSub": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "Poista alisolmu",
+                        "action": function (obj) {
+                            removeSubNode("mainServiceTree", node.id);
+                            updateProductTrees(); // Päivittää muut puut
+                        }
+                    },
+                    "Rename": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "Uudelleennimeä",
+                        "action": function (obj) {
+                            tree.edit(node);
+                        }
+                    },
+                    "Remove": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "Poista",
+                        "action": function (obj) {
+                            removeSubNode("mainServiceTree", node.id);
+                            updateProductTrees(); // Päivittää muut puut
+                        }
+                    }
+                };
+            }
+
+            // Funktio, joka luo jsTree-elementin kontekstivalikon kanssa
+            function createTree(elementId, data) {
+                $('#' + elementId).jstree({
+                    'core': {
+                        'data': data,
+                        'check_callback': true // mahdollistaa solmujen muokkauksen
+                    },
+                    "plugins": ["checkbox", "contextmenu"], // Lisää kontekstivalikko-plugin
+                    "contextmenu": {
+                        items: customMenu,
+                        select_node: false
+                    }
+                });
+            }
+
+            // Luo pääpalvelun ja tuotteiden jsTree-elementit
+            createTree("mainServiceTree", mainServiceLocations);
+            createTree("serviceTree1", mainServiceLocations);
+            createTree("serviceTree2", mainServiceLocations);
+
+            // Funktio, joka päivittää kaikki tuotteiden jsTree-elementit
+            function updateProductTrees() {
+                var updatedData = $('#mainServiceTree').jstree(true).get_json('#', { flat: true });
+                $('.productTree').each(function () {
+                    $(this).jstree(true).settings.core.data = updatedData;
+                    $(this).jstree(true).refresh();
+                });
+            }
+
+            // Kuuntele tapahtumia pääpalvelun jsTreessä ja synkronoi muutokset tuotteiden puihin
+            $('#mainServiceTree').on("delete_node.jstree", function (e, data) {
+                updateProductTrees();
+            }).on("create_node.jstree", function (e, data) {
+                updateProductTrees();
+            }).on("rename_node.jstree", function (e, data) {
+                updateProductTrees();
+            });
+
+            // Napin tapahtumankäsittelijä uuden jsTree-elementin luomiseksi
+            $('#addTree').click(function () {
+                var newTreeId = 'serviceTree' + treeCounter++;
+                var treeTitle = 'Palvelu ' + treeCounter + ':n Sijainnit';
+
+                // Luo otsikko ja puu uudelle palvelulle
+                var treeHeader = $('<h2>').text(treeTitle);
+                var treeContainer = $('<div>').attr('id', newTreeId).addClass('productTree');
+
+                // Lisää uusi otsikko ja puu dokumenttiin
+                $('#serviceTrees').append(treeHeader).append(treeContainer);
+
+                // Kloonaa data pääpuusta ja luo uusi puu
+                var clonedData = $('#mainServiceTree').jstree(true).get_json('#', { flat: true });
+                createTree(newTreeId, clonedData);
+            });
+
+            // Synkronoi valinnat käyttäjän pyynnöstä
+            $('#syncSelectionsButton').click(function () {
+                $('.productTree').each(function () {
+                    syncSelections('mainServiceTree', this.id);
+                });
+            });
+
+            function syncSelections(sourceTreeId, targetTreeId) {
+                var sourceTree = $('#' + sourceTreeId).jstree(true);
+                var selectedNodes = sourceTree.get_selected();
+                var targetTree = $('#' + targetTreeId).jstree(true);
+
+                targetTree.deselect_all();
+                selectedNodes.forEach(function (id) {
+                    targetTree.select_node(id);
+                });
+            }
+
+            // Funktio solmun synkronointiin kaikkiin puihin
+            function syncNodeSelection(nodeId) {
+                $('.productTree').each(function () {
+                    // Tarkista, onko solmu valittu pääpuussa
+                    var isSelected = $('#mainServiceTree').jstree('is_selected', nodeId);
+                    // Jos valittu, valitse solmu myös tässä puussa
+                    if (isSelected) {
+                        $(this).jstree('select_node', nodeId);
+                    } else {
+                        $(this).jstree('deselect_node', nodeId);
+                    }
+                });
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

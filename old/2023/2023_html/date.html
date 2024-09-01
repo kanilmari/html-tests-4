@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Date Picker Example</title>
+</head>
+
+<body>
+	<!-- Piilotettu date input -->
+	<input type="date" id="hiddenDatePicker" style="display:none;">
+
+	<!-- Nappi, joka avaa date pickerin -->
+	<button id="openDatePicker">Avaa Päivämäärävalitsin</button>
+
+	<script>
+		document.getElementById('openDatePicker').addEventListener('click', function () {
+			// Simuloi klikkausta piilotetulle date inputille
+			document.getElementById('hiddenDatePicker').click();
+		});
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>jsTree Dynaaminen Lokaatiopuu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+</head>
+
+<body>
+    <div id="jstree"></div>
+    <script>
+        $(function () {
+            var lokaatiot = [
+                { Country: "Finland", County: "Uusimaa", City: "Helsinki", PostalCode: "00100", Street: "Kaivokatu 5" },
+                { Country: "Finland", County: "Uusimaa", City: "Helsinki", PostalCode: "00200", Street: "Ida aalbergin tie 4" },
+                { Country: "Finland", County: "Uusimaa", City: "Helsinki", PostalCode: "00200", Street: "Ida aalbergin tie 3" },
+                { Country: "Finland", County: "Uusimaa", City: "Lohja", PostalCode: "09220", Street: "Sampaalanpolku 4 A 1" },
+                { Country: "Sweden", City: "Stockholm", PostalCode: "00300", Street: "Stockholmgatan 4" },
+                { Country: "Sweden", City: "Stockholm", PostalCode: "00400", Street: "Helsingsgatan 2" },
+                { Country: "India", City: "Mumbai", PostalCode: "812371", Street: "Corpse burning festival street 334"},
+                // Lisää lokaatioita tässä...
+            ];
+
+            var treeData = muunnaLokaatiotTreeDataksi(lokaatiot);
+
+            $('#jstree').jstree({
+                'core': {
+                    'data': treeData
+                }
+            });
+        });
+
+        function muunnaLokaatiotTreeDataksi(lokaatiot) {
+            let puu = {};
+
+            lokaatiot.forEach(lokaatio => {
+                let nykyinenTaso = puu;
+                let avaimet = Object.keys(lokaatio);
+                
+                avaimet.forEach((avain, indeksi) => {
+                    let arvo = lokaatio[avain];
+                    // Lisää "(zipcode)" postinumeron perään
+                    let solmunTeksti = avain === 'PostalCode' ? `${arvo} postal code area` : arvo;
+
+                    if (!nykyinenTaso[arvo]) {
+                        nykyinenTaso[arvo] = indeksi < avaimet.length - 1 
+                                            ? { text: solmunTeksti, children: {} } 
+                                            : { text: solmunTeksti };
+                    }
+                    // Siirry seuraavalle tasolle, jos ei olla viimeisessä avaimessa
+                    if (indeksi < avaimet.length - 1) {
+                        nykyinenTaso = nykyinenTaso[arvo].children;
+                    }
+                });
+            });
+
+            // Apufunktio puurakenteen muuntamiseksi jsTree:n vaatimaan muotoon.
+            function muunnaHierarkiaLista(obj) {
+                return Object.values(obj).map(haara => {
+                    if (haara.children && Object.keys(haara.children).length > 0) {
+                        haara.children = muunnaHierarkiaLista(haara.children);
+                    } else {
+                        delete haara.children; // Poista children, jos se on tyhjä
+                    }
+                    return haara;
+                });
+            }
+
+            // Käynnistetään rekursiivinen muunnos juuresta alkaen.
+            return muunnaHierarkiaLista(puu);
+        }
+
+    </script>
+</body>
+
+</html>

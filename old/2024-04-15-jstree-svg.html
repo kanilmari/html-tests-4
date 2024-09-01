@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jsTree with Inline SVG</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <style>
+        .jstree-node .jstree-icon.jstree-ocl {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="%23000" stroke-width="2"/></svg>');
+            background-size: 22px 22px;
+            background-position: center !important;
+            background-repeat: no-repeat;
+            transition: all 0.3s ease;
+        }
+
+        .jstree-node.jstree-open > .jstree-icon.jstree-ocl {
+            transform: rotate(90deg);
+        }
+
+        /* Checkboxien kustomointi */
+        /* .jstree-anchor .jstree-checkbox {
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2" stroke="black" fill="none"/></svg>');
+            background-size: 16px;
+            background-position: center;
+            background-repeat: no-repeat;
+        } */
+
+        /* .jstree-checked .jstree-checkbox {
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2" stroke="black" fill="none"/><path d="M4 8l2 2 4-4" stroke="black" fill="none"/></svg>');
+        } */
+    </style>
+</head>
+<body>
+
+<div id="myTree"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
+<script>
+    $(function () {
+        // SVG-kuvakkeet kansiolle ja nuolelle
+        var folderIcon = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 6a2 2 0 0 1 2-2h3c2 0 1 2 3 2h6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z' fill='%23000'/></svg>";
+
+        $('#myTree').jstree({
+            'core': {
+                'data': [
+                    {
+                        "text": "Root node",
+                        "state": { "opened": true },
+                        "icon": folderIcon,
+                        "children": [
+                            {
+                                "text": "Child node 1",
+                                "icon": folderIcon
+                            },
+                            {
+                                "text": "Child node 2",
+                                "icon": folderIcon
+                            }
+                        ]
+                    }
+                ]
+            },
+            "plugins": ["checkbox", "wholerow"]
+        });
+    });
+</script>
+
+</body>
+</html>
+<!--
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.5/themes/default/style.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.5/jstree.min.js"></script>
+</head>
+
+<body>
+
+    <div id="SampleContainer">
+        <ul>
+            <li>
+                Top 1
+                <ul>
+                    <li>
+                        Sub 1
+                        <ul>
+                            <li>
+                                A
+                            </li>
+                            <li>
+                                B
+                            </li>
+
+                        </ul>
+                    </li>
+                    <li>
+                        Sub 2
+                        <ul>
+                            <li>
+                                A
+                            </li>
+                            <li>
+                                B
+                            </li>
+
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+    </div>
+    <script>
+        $(document).ready(function () {
+            $("#SampleContainer").jstree({
+                "plugins": ["checkbox"],
+                core: {
+                    "themes": {
+                        "icons": false,
+                        "responsive": true,
+                        "dots": false
+                    }
+                }
+            });
+            $('#SampleContainer').on('ready.jstree click', function (e, data) {
+                $('a > i.jstree-checkbox')
+                    .removeClass('jstree-icon jstree-checkbox') // removing jstree classes
+                    .addClass('fa fa-square-o') // adding the fa non-checked checkbox class
+                    .on('click', function () { // attaching the handler that toggles the checked / unchecked class
+                        toggleCheckClasses($(this), $(this).hasClass('fa-square-o'));
+                    });
+            });
+
+            function toggleCheckClasses(element, show) {
+                if (show) {
+                    element.removeClass('fa-square-o');
+                    element.addClass('fa-check-square-o');
+                } else {
+                    element.removeClass('fa-check-square-o');
+                    element.addClass('fa-square-o');
+                }
+
+                var children = element.parent().siblings(".jstree-children").find(".jstree-anchor .fa");
+
+                children.each(function () {
+                    toggleCheckClasses($(this), show);
+                });
+
+            }
+
+        });
+    </script>
+</body>
+
+</html> -->

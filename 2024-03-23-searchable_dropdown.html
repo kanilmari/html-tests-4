@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .custom-select-wrapper {
+            position: relative;
+            user-select: none;
+        }
+
+        .custom-select {
+            position: relative;
+        }
+
+        .custom-select-trigger {
+            display: block;
+            cursor: pointer;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+
+        .custom-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            display: none;
+            z-index: 2;
+        }
+
+        .custom-options.show {
+            display: block;
+        }
+
+        .custom-options .filter-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .custom-options ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .custom-options li {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .custom-options li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div class="custom-select-wrapper">
+        <label>Valitse lokaatio:</label>
+        <div class="custom-select">
+            <div class="custom-select-trigger">Valitse lokaatio...</div>
+            <div class="custom-options">
+                <input type="text" class="filter-input" placeholder="Search...">
+
+                <ul>
+                    <li><input type="checkbox" id="location1" name="location" value="1"><label
+                            for="location1">Helsinki</label></li>
+                    <li><input type="checkbox" id="location2" name="location" value="2"><label
+                            for="location2">Espoo</label>
+                    </li>
+                    <li><input type="checkbox" id="location3" name="location" value="3"><label
+                            for="location3">Tampere</label></li>
+                    <li><input type="checkbox" id="location4" name="location" value="4"><label
+                            for="location4">Vantaa</label></li>
+                    <li><input type="checkbox" id="location5" name="location" value="5"><label
+                            for="location5">Oulu</label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div> -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const locations = [
+                { id: 'location1', name: 'Helsinki', value: '1' },
+                { id: 'location2', name: 'Espoo', value: '2' },
+                { id: 'location3', name: 'Tampere', value: '3' },
+                { id: 'location4', name: 'Vantaa', value: '4' },
+                { id: 'location5', name: 'Oulu', value: '5' }
+            ];
+
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'custom-select-wrapper';
+
+            const label = document.createElement('label');
+            label.textContent = 'Valitse lokaatio:';
+            wrapperDiv.appendChild(label);
+
+            const customSelectDiv = document.createElement('div');
+            customSelectDiv.className = 'custom-select';
+            wrapperDiv.appendChild(customSelectDiv);
+
+            const triggerDiv = document.createElement('div');
+            triggerDiv.className = 'custom-select-trigger';
+            triggerDiv.textContent = 'Valitse lokaatio...';
+            customSelectDiv.appendChild(triggerDiv);
+
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'custom-options';
+            customSelectDiv.appendChild(optionsDiv);
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'filter-input';
+            input.placeholder = 'Search...';
+            optionsDiv.appendChild(input);
+
+            const ul = document.createElement('ul');
+            optionsDiv.appendChild(ul);
+
+            locations.forEach(location => {
+                const li = document.createElement('li');
+                li.addEventListener('click', function (event) {
+                    event.stopPropagation(); // Estä eventin kupliminen, jotta dokumentin klikkauskuuntelija ei reagoi
+                    const checkbox = li.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                    updateTriggerText();
+                });
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = location.id;
+                checkbox.name = 'location';
+                checkbox.value = location.value;
+
+                const label = document.createElement('label');
+                label.htmlFor = location.id;
+                label.textContent = location.name;
+
+                li.appendChild(checkbox);
+                li.appendChild(label);
+
+                ul.appendChild(li);
+            });
+
+            document.body.appendChild(wrapperDiv);
+
+            // Sulje valikko klikattaessa ulkopuolelle
+            document.addEventListener('click', function (event) {
+                const isClickInside = customSelectDiv.contains(event.target);
+
+                if (!isClickInside) {
+                    optionsDiv.classList.remove('show');
+                }
+            });
+
+            triggerDiv.addEventListener('click', function (event) {
+                event.stopPropagation(); // Estetään tapahtuman kupliminen
+                optionsDiv.classList.toggle('show');
+            });
+
+            function updateTriggerText() {
+                const selectedOptions = Array.from(ul.querySelectorAll('input[type="checkbox"]')).filter(checkbox => checkbox.checked).map(checkbox => checkbox.nextSibling.textContent);
+                triggerDiv.textContent = selectedOptions.join(', ') || 'Valitse lokaatio...';
+            }
+        });
+
+        function initializeCustomSelect(itemDiv) {
+            const optionsList = itemDiv.querySelector('.custom-options ul');
+
+            const trigger = itemDiv.querySelector('.custom-select-trigger');
+            trigger.addEventListener('click', function () {
+                itemDiv.querySelector('.custom-options').classList.toggle('show');
+            });
+
+            const filterInput = itemDiv.querySelector('.filter-input');
+            filterInput.addEventListener('keyup', function () {
+                const searchValue = this.value.toLowerCase();
+                const options = optionsList.querySelectorAll('li');
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    option.style.display = text.includes(searchValue) ? '' : 'none';
+                });
+            });
+
+            const checkboxes = optionsList.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function (event) {
+                    event.stopPropagation(); // Estetään checkbox-klikkauksen propagointi ylemmäs DOM-puussa
+                    updateTriggerText();
+                });
+            });
+
+            function updateTriggerText() {
+                const selectedOptions = Array.from(checkboxes).filter(checkbox => checkbox.checked).map(checkbox => checkbox.nextSibling.textContent);
+                trigger.textContent = selectedOptions.join(', ') || 'Valitse lokaatio...';
+            }
+        }
+
+
+    </script>
+</body>
+
+</html>

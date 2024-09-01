@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuvan pienennys vertailu</title>
+    <script src="https://unpkg.com/pica"></script> <!-- Pican CDN-linkki -->
+    <style>
+        * {
+            background: #222;
+            color: #eee;
+        }
+    </style>
+    <script>
+        function resizeImageWithPica(file, maxWidth, maxHeight, callback) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const pica = window.pica();
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    pica.resize(img, canvas, {
+                        unsharpAmount: 80,
+                        unsharpRadius: 0.6,
+                        unsharpThreshold: 2
+                    })
+                        .then(result => pica.toBlob(result, 'image/jpeg', 0.9))
+                        .then(blob => callback(blob));
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Function to apply unsharp mask with dynamic radius
+        function applyAdaptiveUnsharpMask(ctx, width, height, iterations = 3, minAmount = 10, maxAmount = 50, radius = 1, minThreshold = 5, maxThreshold = 50) {
+            for (let iter = 0; iter < iterations; iter++) {
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const pixels = imageData.data;
+                const blurred = new ImageData(new Uint8ClampedArray(pixels), width, height);
+                const blurCtx = document.createElement('canvas').getContext('2d');
+
+                // Apply Gaussian blur to the cloned data
+                blurCtx.canvas.width = width;
+                blurCtx.canvas.height = height;
+                blurCtx.putImageData(blurred, 0, 0);
+                blurCtx.filter = `blur(${radius}px)`;
+                blurCtx.drawImage(blurCtx.canvas, 0, 0);
+
+                const blurredData = blurCtx.getImageData(0, 0, width, height).data;
+
+                // Combine original and blurred data
+                for (let i = 0; i < pixels.length; i += 4) {
+                    let diffR = pixels[i] - blurredData[i];
+                    let diffG = pixels[i + 1] - blurredData[i + 1];
+                    let diffB = pixels[i + 2] - blurredData[i + 2];
+
+                    // Calculate the contrast difference as the maximum absolute difference in RGB channels
+                    let contrastDiff = Math.max(Math.abs(diffR), Math.abs(diffG), Math.abs(diffB));
+
+                    // Map the contrast difference to the corresponding amount and threshold
+                    let amount = minAmount + (maxAmount - minAmount) * (contrastDiff / 255);
+                    let threshold = minThreshold + (maxThreshold - minThreshold) * (contrastDiff / 255);
+
+                    if (Math.abs(diffR) > threshold) {
+                        pixels[i] += amount / 100 * diffR;
+                    }
+                    if (Math.abs(diffG) > threshold) {
+                        pixels[i + 1] += amount / 100 * diffG;
+                    }
+                    if (Math.abs(diffB) > threshold) {
+                        pixels[i + 2] += amount / 100 * diffB;
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+            }
+        }
+
+// Lanczos Kernel Function
+function lanczos(size, x) {
+    if (x >= size || x <= -size) return 0;
+    if (x === 0) return 1;
+    var xpi = x * Math.PI;
+    return size * Math.sin(xpi) * Math.sin(xpi / size) / (xpi * xpi);
+}
+
+// Worker Script
+function resampleWorkerScript() {
+    onmessage = function(event) {
+        const { srcData, width, height, filterSize, cachePrecision } = event.data;
+
+        const dstData = new Uint8ClampedArray(width * height * 4);
+        const cache = createCache(lanczos, cachePrecision, filterSize);
+
+        // Main loop
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                let sx = (x + 0.5) / width * srcData.width;
+                let sy = (y + 0.5) / height * srcData.height;
+
+                let r = 0, g = 0, b = 0, a = 0, total = 0;
+
+                for (let cy = Math.floor(sy - filterSize); cy <= Math.ceil(sy + filterSize); cy++) {
+                    for (let cx = Math.floor(sx - filterSize); cx <= Math.ceil(sx + filterSize); cx++) {
+                        let weight = cache[Math.abs(cy - sy) * cachePrecision] * cache[Math.abs(cx - sx) * cachePrecision];
+                        total += weight;
+
+                        let srcIdx = (cy * srcData.width + cx) * 4;
+                        r += srcData.data[srcIdx] * weight;
+                        g += srcData.data[srcIdx + 1] * weight;
+                        b += srcData.data[srcIdx + 2] * weight;
+                        a += srcData.data[srcIdx + 3] * weight;
+                    }
+                }
+
+                let dstIdx = (y * width + x) * 4;
+                dstData[dstIdx] = r / total;
+                dstData[dstIdx + 1] = g / total;
+                dstData[dstIdx + 2] = b / total;
+                dstData[dstIdx + 3] = a / total;
+            }
+        }
+
+        postMessage({ dstData, width, height });
+    };
+
+    function createCache(kernel, cachePrecision, filterSize) {
+        const cache = {};
+        const max = filterSize * filterSize * cachePrecision;
+        const iPrecision = 1.0 / cachePrecision;
+        for (let i = 0; i < max; i++) {
+            let value = kernel(filterSize, Math.sqrt(i * iPrecision));
+            cache[i] = value < 0 ? 0 : value;
+        }
+        return cache;
+    }
+}
+
+// ResampleLanczos function with Web Workers
+var ResampleLanczos = function(img, width, height, filterSize = 3, cachePrecision = 1000) {
+    return new Promise((resolve, reject) => {
+        const worker = new Worker(URL.createObjectURL(new Blob([`(${resampleWorkerScript.toString()})()`], { type: 'application/javascript' })));
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const srcData = ctx.getImageData(0, 0, img.width, img.height);
+
+        worker.postMessage({ srcData, width, height, filterSize, cachePrecision });
+
+        worker.onmessage = function(event) {
+            const { dstData, width, height } = event.data;
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            const imgData = ctx.createImageData(width, height);
+            imgData.data.set(new Uint8ClampedArray(dstData));
+            ctx.putImageData(imgData, 0, 0);
+            worker.terminate();
+            resolve(canvas);
+        };
+
+        worker.onerror = function(error) {
+            worker.terminate();
+            reject(error);
+        };
+    });
+};
+
+        function resizeImageWithLanczos(file, maxWidth, maxHeight, callback) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const width = maxWidth;
+                    const height = maxHeight;
+                    const canvas = ResampleLanczos(img, width, height, 3, 'lanczos');
+                    const ctx = canvas.getContext('2d');
+
+                    // Apply unsharp mask to the Lanczos resized image with dynamic radius
+                    // applyUnsharpMask(ctx, width, height, 1, 15, 2, 0);
+                    // applyUnsharpMask(ctx, width, height, 1, 85, 1, 0);
+                    // applyAdaptiveUnsharpMask(ctx, width, height, 1, 125, 250, 0.5, 0, 20);
+
+                    canvas.toBlob(callback, 'image/jpeg', 0.9); // Luo Blob-objekti pienennetystä kuvasta
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            const maxSize = 600; // Määritä kuvan maksimikoko tässä
+
+            if (file.type.match('image.*')) {
+
+                resizeImageWithPica(file, maxSize, maxSize, (blob) => {
+                    const resizedImageURL = URL.createObjectURL(blob);
+                    document.getElementById('output-image-pica').src = resizedImageURL;
+                });
+
+                resizeImageWithLanczos(file, maxSize, maxSize, (blob) => {
+                    const resizedImageURL = URL.createObjectURL(blob);
+                    document.getElementById('output-image-lanczos').src = resizedImageURL;
+                });
+            } else {
+                alert('Valitse kuvatiedosto.');
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Kuvan pienennys vertailu</h1>
+    <input type="file" id="input-file" accept="image/*">
+    <div>
+        <h2>Picalla pienennetty kuva:</h2>
+        <img id="output-image-pica" alt="Pica pienennetty kuva" style="max-width: 100%; height: auto;">
+    </div>
+    <div>
+        <h2>Lanczos-suodatuksella pienennetty kuva:</h2>
+        <img id="output-image-lanczos" alt="Lanczos pienennetty kuva" style="max-width: 100%; height: auto;">
+    </div>
+    <script>
+        document.getElementById('input-file').addEventListener('change', handleFileSelect);
+    </script>
+</body>
+
+</html>

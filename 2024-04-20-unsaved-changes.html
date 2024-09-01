@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Page Exit Warning Example</title>
+<script>
+window.addEventListener('beforeunload', function (event) {
+  // Tarkista, onko käyttäjällä tallentamattomia muutoksia
+  var isPageDirty = true; // Oletetaan, että sivulla on tallentamattomia muutoksia
+
+  if (isPageDirty) {
+    var message = 'Sinulla on tallentamattomia muutoksia. Oletko varma, että haluat poistua?';
+    event.returnValue = message; // Standardi viesti useimmille selaimille
+    return message; // Jotkut selaimet vaativat tämän viestin palautuksen
+  }
+});
+</script>
+</head>
+<body>
+  <h1>Hello, World!</h1>
+  <p>Make some changes here, and try to navigate away or refresh.</p>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Div Inputin Alla</title>
+    <style>
+        .input-container {
+            position: relative; /* Määritetään sijainti suhteelliseksi */
+            display: inline-block; /* Tai voit käyttää 'block', riippuen layoutistasi */
+        }
+        
+        .dropdown {
+            position: absolute; /* Absoluuttinen sijainti suhteessa vanhempaansa */
+            top: 100%; /* Asetetaan juuri input-kentän alapuolelle */
+            left: 0;
+            width: 100%; /* Voit säätää leveyttä tarpeen mukaan */
+            background-color: #f9f9f9;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            z-index: 1000; /* Varmistetaan, että se on muiden elementtien päällä */
+            /* Lisää tyylejä dropdown-sisällöllesi tarpeen mukaan */
+        }
+    </style>
+</head>
+<body>
+
+<div class="input-container">
+    <input type="text" placeholder="Hae...">
+    <div class="dropdown">
+        <!-- Dropdown sisältö tänne -->
+        <p>Valinta 1</p>
+        <p>Valinta 2</p>
+        <p>Valinta 3</p>
+    </div>
+</div>
+
+<!-- Muita elementtejä testaamista varten -->
+<p>Tämä teksti on dropdownin alla ja peittyy sen toimesta.</p>
+
+</body>
+</html>

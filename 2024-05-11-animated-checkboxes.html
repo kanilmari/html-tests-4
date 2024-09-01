@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<style>
+/* Mukautetun checkboxin perustyylit */
+.custom-checkbox {
+  display: inline-block;
+  position: relative;
+  padding-left: 35px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Piilotetaan alkuperäinen checkbox */
+.custom-checkbox input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Luodaan uusi merkki */
+.custom-checkbox .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: #eee;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Kun checkbox on valittu, vaihda merkin väri ja lisää rasti */
+.custom-checkbox input:checked + .checkmark {
+  background-color: #2196F3;
+  transform: scale(1.1); /* Lisätään pieni animaatio suurennuksella */
+}
+
+/* Luodaan rasti (kun elementti on valittu) */
+.custom-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Näytä rasti, kun checkbox on valittu */
+.custom-checkbox input:checked + .checkmark:after {
+  display: block;
+}
+
+/* Tyyli rastille */
+.custom-checkbox .checkmark:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+</style>
+</head>
+<body>
+<label class="custom-checkbox">
+  <input type="checkbox" hidden />
+  <span class="checkmark"></span>
+</label>
+</body>
+</html>

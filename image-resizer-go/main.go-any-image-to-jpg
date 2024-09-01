@@ -1,0 +1,138 @@
+// package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"image"
+	"image/jpeg"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"time"
+
+	_ "image/gif"
+
+	"github.com/nfnt/resize"
+	_ "golang.org/x/image/webp"
+)
+
+func convertWebPToJPGUsingImageMagick(input []byte) ([]byte, error) {
+	cmd := exec.Command("magick", "convert", "webp:-", "jpeg:-")
+
+	cmd.Stdin = bytes.NewReader(input)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		log.Printf("Error running ImageMagick: %v", err)
+		return nil, err
+	}
+
+	log.Println("ImageMagick conversion successful")
+	return out.Bytes(), nil
+}
+
+func decodeAndResizeImage(imageData []byte) ([]byte, error) {
+	img, format, err := image.Decode(bytes.NewReader(imageData))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image: %v", err)
+	}
+
+	log.Printf("Image format: %s", format)
+
+	// Resize the image to 600px height while maintaining aspect ratio
+	resizedImg := resize.Resize(0, 600, img, resize.Lanczos3)
+
+	// Encode the resized image back to JPEG
+	var output bytes.Buffer
+	err = jpeg.Encode(&output, resizedImg, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode resized image: %v", err)
+	}
+
+	return output.Bytes(), nil
+}
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		log.Printf("Error reading file from request: %v", err)
+		http.Error(w, "Failed to get image", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	imageData, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Printf("Error reading file content: %v", err)
+		http.Error(w, "Failed to read image data", http.StatusInternalServerError)
+		return
+	}
+
+	var processedImage []byte
+	if http.DetectContentType(imageData) == "image/webp" {
+		log.Println("Processing WebP image")
+		processedImage, err = convertWebPToJPGUsingImageMagick(imageData)
+		if err != nil {
+			http.Error(w, "Failed to convert WebP image", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		log.Println("Processing non-WebP image")
+		processedImage = imageData
+	}
+
+	// Resize the image to 600px height
+	start := time.Now()
+	resizedImage, err := decodeAndResizeImage(processedImage)
+	duration := time.Since(start).Milliseconds()
+	if err != nil {
+		log.Printf("Error resizing image: %v", err)
+		http.Error(w, "Failed to resize image", http.StatusInternalServerError)
+		return
+	}
+
+	// Save the resized image to the static/images directory
+	outputDir := "./static/images"
+	os.MkdirAll(outputDir, os.ModePerm)
+
+	fileName := fmt.Sprintf("converted-%d.jpg", time.Now().UnixNano())
+	filePath := filepath.Join(outputDir, fileName)
+
+	err = ioutil.WriteFile(filePath, resizedImage, 0644)
+	if err != nil {
+		log.Printf("Error writing file to disk: %v", err)
+		http.Error(w, "Failed to save image", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("File saved successfully: %s", filePath)
+
+	// Respond with the URL of the resized image and the processing time
+	relativeURL := "/images/" + fileName
+	jsonResp := map[string]interface{}{
+		"url":      relativeURL,
+		"duration": duration,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(jsonResp)
+}
+
+func main() {
+	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("./static/images"))))
+
+	http.HandleFunc("/upload", uploadHandler)
+
+	fmt.Println("Server started at http://localhost:8081")
+	log.Fatal(http.ListenAndServe(":8081", nil))
+}

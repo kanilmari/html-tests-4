@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Scroll with Padding Example</title>
+	<style>
+		.scroll-container {
+			width: 300px;
+			/* Adjust width as needed */
+			height: 200px;
+			/* Adjust height as needed */
+			overflow-y: auto;
+			/* This enables vertical scrolling */
+			border: 1px solid #ccc;
+			/* Just for visual reference */
+		}
+
+		.content-padding {
+			padding-right: 20px;
+			/* Adjust padding as needed */
+			/* Add padding to other sides as needed */
+		}
+
+		.long-content {
+			height: 6000px;
+			/* This forces the scrollbar to become active */
+			background: linear-gradient(to bottom, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+			/* The gradient is just for visual effect */
+		}
+	</style>
+</head>
+
+<body>
+<svg width="220" height="100" xmlns="http://www.w3.org/2000/svg">
+	<text x="10" y="50" font-family="Arial" font-size="30" font-weight="bold" fill="white" stroke="black"
+		stroke-width="1">
+		Teksti
+	</text>
+</svg>
+
+
+	<div class="scroll-container">
+		<div class="content-padding">
+			<!-- This element is specifically made long to force scrolling -->
+			<div class="long-content"></div>
+		</div>
+	</div>
+
+</body>
+
+</html>

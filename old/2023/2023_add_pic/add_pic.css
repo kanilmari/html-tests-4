@@ -1,0 +1,85 @@
+
+        img {
+            display: block;
+            /* Asettaa kuvan omaan riviinsä */
+            /* border: 3px solid #005; */
+            /* margin: 10px auto; */
+            /* Keskittää kuvan ja lisää tilaa ylä- ja alapuolelle */
+        }
+
+        .add-pic {
+            display: block;
+            /* Asettaa säätimet omille riveilleen */
+            background-color: #333;
+            color: #f0f0f0;
+            border: 1px solid #444;
+            margin: 10px auto;
+            /* Keskittää säätimet ja lisää tilaa ylä- ja alapuolelle */
+            width: 80%;
+            /* Leventää säätimet */
+        }
+
+
+        #imageContainer {
+            position: relative;
+            display: inline-block;
+        }
+
+        #cropCanvas {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        #preview,
+        #cropCanvas {
+            max-width: 600px;
+            max-height: 600px;
+            object-fit: contain;
+        }
+
+        .marker {
+            pointer-events: none;
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: rgba(200, 200, 255);
+            border: 1px solid black;
+            z-index: 1;
+        }
+
+        .highlighted {
+            color: #ff0;
+            background-color: #333;
+            /* padding: 5px; */
+            border-radius: 3px;
+        }
+
+        .pic-slider-container {
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pic-edit-slider-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .pic-edit-slider-row label {
+            flex-basis: 150px;
+            text-align: right;
+            margin-right: 10px;
+        }
+
+        .pic-edit-slider-row input,
+        .pic-edit-slider-row button {
+            margin-right: 10px;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: flex-start;
+        }

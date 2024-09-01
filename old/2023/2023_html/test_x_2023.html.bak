@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HERE Kartta - Esimerkki</title>
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+</head>
+<body>
+    <div style="width: 640px; height: 480px" id="mapContainer"></div>
+    <script>
+        var platform = new H.service.Platform({
+            'apikey': 'LyEG0B_n4N1SKjtcSritPFfzh67c2E5l95DH3xo1kvY'
+        });
+        var defaultLayers = platform.createDefaultLayers();
+        var map = new H.Map(
+            document.getElementById('mapContainer'),
+            defaultLayers.vector.normal.map,
+            {
+                zoom: 14,
+                center: { lat: -27.59761, lng: -48.548 } // Käytä haettuja koordinaatteja
+            }
+        );
+        var ui = H.ui.UI.createDefault(map, defaultLayers);
+    </script>
+</body>
+</html>

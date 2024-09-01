@@ -1,0 +1,43 @@
+<!-- 
+
+Write me an html file that does the following: It shows a colored div and a toggle button to to the following function: fade out the div, change its width, fade in the div with this new width. Animation for fading is ok, but animation for width is not needed. 
+
+-->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+        <title>Fade and Resize Div</title>
+        <style>
+                #myDiv {
+                        width: 200px;
+                        height: 100px;
+                        background-color: #ff69b4;
+                        margin: 20px;
+                        transition: opacity 0.5s; /* animate opacity changes */
+                }
+        </style>
+</head>
+<body>
+        <div id="myDiv"></div>
+        <button id="myButton">Toggle</button>
+
+        <script>
+                let toggled = false;
+                document.getElementById("myButton").addEventListener("click", function() {
+                        if (toggled) {
+                                document.getElementById("myDiv").style.opacity = 1;
+                                document.getElementById("myDiv").style.width = "200px";
+                        } else {
+                                document.getElementById("myDiv").style.opacity = 0;
+                                setTimeout(function() {
+                                        document.getElementById("myDiv").style.width = "300px";
+                                        document.getElementById("myDiv").style.opacity = 1;
+                                }, 500); // wait 500ms for the fade out to complete
+                        }
+                        toggled = !toggled;
+                });
+        </script>
+</body>
+</html>

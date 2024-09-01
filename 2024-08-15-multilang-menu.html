@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilingual Restaurant Menu</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+            position: relative;
+        }
+        input[type="text"] {
+            width: 90%;
+            padding: 5px;
+        }
+        button {
+            margin: 5px;
+        }
+        .remove-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .remove-btn-row, .remove-btn-column {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .remove-btn-column {
+            top: 0;
+            right: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Multilingual Menu</h1>
+
+    <table id="menuTable">
+        <thead>
+            <tr>
+                <th>Product <button class="remove-btn-column" onclick="removeColumn(0)">Remove</button></th>
+                <th>Language 1 <button class="remove-btn-column" onclick="removeColumn(1)">Remove</button></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <input type="text" placeholder="Enter product name">
+                    <button class="remove-btn-row" onclick="removeRow(this)">Remove</button>
+                </td>
+                <td><input type="text" placeholder="Enter translation"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button onclick="addRow()">Add Product</button>
+    <button onclick="addColumn()">Add Language</button>
+
+    <script>
+        function addRow() {
+            const table = document.getElementById('menuTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            const columnCount = table.rows[0].cells.length;
+
+            for (let i = 0; i < columnCount; i++) {
+                const newCell = newRow.insertCell(i);
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = i === 0 ? 'Enter product name' : 'Enter translation';
+                newCell.appendChild(input);
+
+                if (i === 0) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-btn-row';
+                    removeBtn.innerText = 'Remove';
+                    removeBtn.onclick = function () { removeRow(this); };
+                    newCell.appendChild(removeBtn);
+                }
+            }
+        }
+
+        function addColumn() {
+            const table = document.getElementById('menuTable');
+            const headerRow = table.rows[0];
+            const newHeader = document.createElement('th');
+            const columnIndex = headerRow.cells.length;
+            newHeader.innerHTML = 'Language ' + columnIndex + ' <button class="remove-btn-column" onclick="removeColumn(' + columnIndex + ')">Remove</button>';
+            headerRow.appendChild(newHeader);
+
+            for (let i = 1; i < table.rows.length; i++) {
+                const newRow = table.rows[i];
+                const newCell = newRow.insertCell();
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Enter translation';
+                newCell.appendChild(input);
+            }
+        }
+
+        function removeRow(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function removeColumn(index) {
+            const table = document.getElementById('menuTable');
+            for (let i = 0; i < table.rows.length; i++) {
+                table.rows[i].deleteCell(index);
+            }
+        }
+    </script>
+
+</body>
+</html>

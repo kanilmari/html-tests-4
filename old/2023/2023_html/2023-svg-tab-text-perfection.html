@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<title>SVG Painike Ikonilla ja Tekstillä Suuremmalla Varjolla</title>
+<style>
+  body {
+    background-color: #ffffff; /* Valkoinen tausta */
+  }
+  .shadow {
+    filter: url(#largerShadowFilter);
+  }
+
+  .shadow-path {
+    filter: url(#largerShadowFilterPath);
+    fill: black;
+    stroke: black;
+  }
+
+  path {
+      fill: white; /* Täyttöväri */
+      stroke: black; /* Ääriviivan väri */
+      stroke-width: 6; /* Ääriviivan leveys */
+      stroke-linejoin: round; /* Ääriviivan kulmien tyyppi */
+      paint-order: stroke fill; /* Piirtämisjärjestys */
+    }
+    /* Voit lisätä tämän CSS-säännön erottamaan toisen pathin tyylit */
+    path.special {
+      stroke-width: 12; /* Eri ääriviivan leveys */
+    }
+</style>
+</head>
+<body>
+
+<svg id="test" width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="largerShadowFilter" x="-50%" y="-50%" width="300%" height="300%">
+      <feOffset dx="1" dy="1" result="offsetblur"/>
+      <feGaussianBlur in="offsetblur" stdDeviation="2" result="blurred"/>
+      <feComponentTransfer in="blurred" result="larger">
+        <feFuncA type="linear" slope="4"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="larger" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="10" y="10" width="280" height="80" rx="20" ry="20" fill="black" class="shadow"/>
+  <rect x="10" y="10" width="280" height="80" rx="20" ry="20" fill="#80a0ff" stroke="black" stroke-width="5" paint-order="stroke fill"/>
+  
+  <g transform="translate(20,75)">
+    <path class="shadow-path" d="M0 0v-40h12v-12h30v24h12v30H40v-12h-6v12H0Zm6-6h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 24h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 36h6v-6h-6v6Zm0-12h6v-6h-6v6Z" fill="black" stroke="black"/>
+  </g>
+
+  <g transform="translate(20,75)">
+    <path d="M0 0v-40h12v-12h30v24h12v30H40v-12h-6v12H0Zm6-6h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 24h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 36h6v-6h-6v6Zm0-12h6v-6h-6v6Z" fill="white" stroke="black" stroke-width="4"/>
+  </g>
+
+  <text x="110" y="55" font-family="Arial" font-weight="bold" font-size="20" fill="black" class="shadow">Painike</text>
+  <text x="110" y="55" font-family="Arial" font-weight="bold" font-size="20" fill="white" stroke="black" stroke-width="5" paint-order="stroke fill" stroke-linejoin="round">Painike</text>
+</svg>
+
+
+
+
+
+
+
+
+
+
+<!-- Kunnolliset reunat - ei tarvetta varjoille -->
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="150" viewBox="0 0 600 150">
+  <!-- Tässä on ikoni, joka on luotu path-elementillä -->
+  <!-- <path d="M10,10 h80 v80 h-80 Z" /> -->
+  <!-- Voit lisätä toisen path-elementin eri tyyleillä -->
+  <path d="M110,10 h80 v80 h-80 Z" style="stroke-width: 12; paint-order: stroke;"/>
+</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="150" viewBox="0 0 600 150">
+  <!-- <path d="M10 10 h 100 v 100 h -100 Z" /> -->
+  <path d="M150 10 h 100 v 100 h -100 Z" class="special" />
+</svg>
+
+
+<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="largerShadowFilter" x="-50%" y="-50%" width="300%" height="300%">
+      <feOffset dx="1" dy="1" result="offsetblur"/>
+      <feGaussianBlur in="offsetblur" stdDeviation="2" result="blurred"/>
+      <!-- Käytä feComponentTransferia suurentamaan varjoa -->
+      <feComponentTransfer in="blurred" result="larger">
+        <feFuncA type="linear" slope="4"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="larger" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Napin varjo -->
+  <rect x="10" y="10" width="280" height="80" rx="20" ry="20" fill="black" class="shadow"/>
+  <!-- Nappi -->
+  <rect x="10" y="10" width="280" height="80" rx="20" ry="20" fill="#80a0ff"/>
+  <!-- Ikonin varjo -->
+  <g filter="url(#largerShadowFilter)" transform="translate(20,75)">
+    <path d="M0 0v-40h12v-12h30v24h12v30H40v-12h-6v12H0Zm6-6h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 24h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 36h6v-6h-6v6Zm0-12h6v-6h-6v6Z" fill="black"/>
+  </g>
+  <!-- Ikonin kuvake -->
+  <g transform="translate(20,75)">
+    <path d="M0 0v-40h12v-12h30v24h12v30H40v-12h-6v12H0Zm6-6h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 24h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 36h6v-6h-6v6Zm0-12h6v-6h-6v6Z" fill="white"/>
+  </g>
+  <!-- Tekstin varjo -->
+  <text x="110" y="55" font-family="Arial" font-weight="bolder" font-size="20" fill="black" class="shadow">Painike</text>
+  <!-- Teksti -->
+  <text x="110" y="55" font-family="Arial" font-weight="bolder" font-size="20" fill="white">Painike</text>
+</svg>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Luo SVG-elementti
+  const svgNS = "http://www.w3.org/2000/svg";
+  let svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", "300");
+  svg.setAttribute("height", "100");
+  svg.setAttribute("xmlns", svgNS);
+
+  // Luo varjon määritelmät
+  let defs = document.createElementNS(svgNS, "defs");
+  let filter = document.createElementNS(svgNS, "filter");
+  filter.setAttribute("id", "largerShadowFilter");
+  filter.setAttribute("x", "-50%");
+  filter.setAttribute("y", "-50%");
+  filter.setAttribute("width", "300%");
+  filter.setAttribute("height", "300%");
+  let feOffset = document.createElementNS(svgNS, "feOffset");
+  feOffset.setAttribute("dx", "1");
+  feOffset.setAttribute("dy", "1");
+  feOffset.setAttribute("result", "offsetblur");
+  let feGaussianBlur = document.createElementNS(svgNS, "feGaussianBlur");
+  feGaussianBlur.setAttribute("in", "offsetblur");
+  feGaussianBlur.setAttribute("stdDeviation", "2");
+  feGaussianBlur.setAttribute("result", "blurred");
+  let feComponentTransfer = document.createElementNS(svgNS, "feComponentTransfer");
+  feComponentTransfer.setAttribute("in", "blurred");
+  feComponentTransfer.setAttribute("result", "larger");
+  let feFuncA = document.createElementNS(svgNS, "feFuncA");
+  feFuncA.setAttribute("type", "linear");
+  feFuncA.setAttribute("slope", "4");
+  let feMerge = document.createElementNS(svgNS, "feMerge");
+  let feMergeNode1 = document.createElementNS(svgNS, "feMergeNode");
+  feMergeNode1.setAttribute("in", "larger");
+  let feMergeNode2 = document.createElementNS(svgNS, "feMergeNode");
+  feMergeNode2.setAttribute("in", "SourceGraphic");
+
+  // Yhdistä kaikki varjon osat
+  feComponentTransfer.appendChild(feFuncA);
+  feMerge.appendChild(feMergeNode1);
+  feMerge.appendChild(feMergeNode2);
+  filter.appendChild(feOffset);
+  filter.appendChild(feGaussianBlur);
+  filter.appendChild(feComponentTransfer);
+  filter.appendChild(feMerge);
+  defs.appendChild(filter);
+  svg.appendChild(defs);
+
+  // Luo napin varjo
+  let rectShadow = document.createElementNS(svgNS, "rect");
+  rectShadow.setAttribute("x", "10");
+  rectShadow.setAttribute("y", "10");
+  rectShadow.setAttribute("width", "280");
+  rectShadow.setAttribute("height", "80");
+  rectShadow.setAttribute("rx", "20");
+  rectShadow.setAttribute("ry", "20");
+  rectShadow.setAttribute("fill", "black");
+  rectShadow.setAttribute("class", "shadow");
+
+  // Luo nappi
+  let rectButton = document.createElementNS(svgNS, "rect");
+  rectButton.setAttribute("x", "10");
+  rectButton.setAttribute("y", "10");
+  rectButton.setAttribute("width", "280");
+  rectButton.setAttribute("height", "80");
+  rectButton.setAttribute("rx", "20");
+  rectButton.setAttribute("ry", "20");
+  rectButton.setAttribute("fill", "#80a0ff");
+
+  // Luo ikonin varjo
+  let gShadow = document.createElementNS(svgNS, "g");
+  gShadow.setAttribute("filter", "url(#largerShadowFilter)");
+  gShadow.setAttribute("transform", "translate(20,75)");
+  let pathShadow = document.createElementNS(svgNS, "path");
+  pathShadow.setAttribute("d", "M0 0v-40h12v-12h30v24h12v30H40v-12h-6v12H0Zm6-6h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 24h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 36h6v-6h-6v6Zm0-12h6v-6h-6v6Z");
+  pathShadow.setAttribute("fill", "black");
+  gShadow.appendChild(pathShadow);
+
+  // Luo ikonin kuvake
+  let gIcon = document.createElementNS(svgNS, "g");
+  gIcon.setAttribute("transform", "translate(20,75)");
+  let pathIcon = document.createElementNS(svgNS, "path");
+  pathIcon.setAttribute("d", "M0 0v-40h12v-12h30v24h12v30H40v-12h-6v12H0Zm6-6h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 24h6v-6h-6v6Zm0-12h6v-6h-6v6Zm0-12h6v-6h-6v6Zm12 36h6v-6h-6v6Zm0-12h6v-6h-6v6Z");
+  pathIcon.setAttribute("fill", "white");
+  gIcon.appendChild(pathIcon);
+
+  // Luo tekstin varjo ja teksti
+  let textShadow = document.createElementNS(svgNS, "text");
+  textShadow.setAttribute("x", "110");
+  textShadow.setAttribute("y", "55");
+  textShadow.setAttribute("font-family", "Arial");
+  textShadow.setAttribute("font-weight", "bolder");
+  textShadow.setAttribute("font-size", "20");
+  textShadow.setAttribute("fill", "black");
+  textShadow.setAttribute("class", "shadow");
+  textShadow.textContent = "Painike";
+
+  let text = document.createElementNS(svgNS, "text");
+  text.setAttribute("x", "110");
+  text.setAttribute("y", "55");
+  text.setAttribute("font-family", "Arial");
+  text.setAttribute("font-weight", "bolder");
+  text.setAttribute("font-size", "20");
+  text.setAttribute("fill", "white");
+  text.textContent = "Painike";
+
+  // Lisää kaikki osat SVG:hen
+  svg.appendChild(rectShadow);
+  svg.appendChild(rectButton);
+  svg.appendChild(gShadow);
+  svg.appendChild(gIcon);
+  svg.appendChild(textShadow);
+  svg.appendChild(text);
+
+  // Lisää SVG dokumenttiin
+  document.body.appendChild(svg);
+});
+</script>
+</body>
+</html>

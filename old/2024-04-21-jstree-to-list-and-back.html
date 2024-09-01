@@ -1,0 +1,116 @@
+<!-- 
+The goal of this test tool is to demonstrate easy switching between... 
+    - jstree 
+    - and a simple list of objects (object names containing their full paths)
+
+As this is a test version, some things may be printed to the browser's console. Therefore, be sure to keep the console open, so you don't miss anything.
+-->
+
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Lehtisolmut Lista</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+</head>
+
+<body>
+
+    <input type="radio" name="view" id="treeView" checked> Puunäkymä
+    <input type="radio" name="view" id="listView"> Lista
+
+    <div id="jstree"></div> <!-- Alkuperäinen JSTree elementti -->
+    <ul id="flatList" style="display: none;"></ul> <!-- Yksitasoinen lista, piilotettu aluksi -->
+
+    <script>
+        $(document).ready(function () {
+            // Alusta JSTree
+            $('#jstree').jstree({
+                'core': {
+                    'data': [
+                        {
+                            "id": "finland",
+                            "text": "Suomi",
+                            "children": [
+                                {
+                                    "id": "helsinki",
+                                    "text": "Helsinki",
+                                    "children": [
+                                        {
+                                            "id": "mannerheimintie",
+                                            "text": "Mannerheimintie"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": "espoo",
+                                    "text": "Espoo",
+                                    "children": [
+                                        {
+                                            "id": "tapiola",
+                                            "text": "Tapiola"
+                                        },
+                                        {
+                                            "id": "leppavaara",
+                                            "text": "Leppävaara"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+
+            });
+
+            // Funktio palauttamaan vain lehtisolmun nimen
+            function getLeafNodeText(nodeId) {
+                var node = $('#jstree').jstree(true).get_node(nodeId);
+                // Tarkistetaan, onko solmulla lapsia
+                if (node.children && node.children.length === 0) {
+                    var path = [];
+                    var currentNode = node;
+                    // Kerätään koko polku lehtisolmusta juureen
+                    do {
+                        path.push(currentNode.text); // Lisää nykyisen solmun nimi polkuun
+                        currentNode = $('#jstree').jstree(true).get_node(currentNode.parent);
+                    } while (currentNode && currentNode.id !== '#');
+                    console.log("Path for " + node.text + ": " + path.join(', ')); // Tulostetaan polku konsoliin
+                    return node.text; // Palautetaan lehtisolmun nimi
+                }
+                return null; // Jos on lapsia, palauta null
+            }
+
+
+            // Radiobuttonien toiminnallisuus
+            $('input[type=radio][name=view]').change(function () {
+                if (this.id == 'listView') {
+                    var treeData = $('#jstree').jstree(true).get_json('#', { flat: true });
+                    var flatList = $('#flatList');
+                    flatList.empty(); // Tyhjennä lista ensin
+
+                    // Luo lista
+                    treeData.forEach(function (node) {
+                        var leafText = getLeafNodeText(node.id);
+                        if (leafText) { // Jos solmu on lehti, lisätään se listaan
+                            var listItem = $('<li></li>').text(leafText);
+                            flatList.append(listItem);
+                        }
+                    });
+
+                    $('#jstree').hide();
+                    flatList.show();
+                } else {
+                    $('#flatList').hide();
+                    $('#jstree').show();
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

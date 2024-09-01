@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Hint - Demo</title>
+    <style>
+        * {
+            font-size: 20px;
+        }
+
+        body {
+            background-color: #333;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 30px;
+        }
+
+        .scroll-hint-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .scroll-hint-fade {
+            height: 30px;
+            background: linear-gradient(to bottom, rgba(51, 51, 51, 0), rgba(51, 51, 51, 1));
+        }
+
+        .scroll-hint {
+            height: 20px;
+            background: #333;
+            text-align: center;
+            padding: 5px;
+            color: #FFF;
+        }
+    </style>
+</head>
+
+<body>
+
+    <ul>
+ 
+        <li>Elementti 1</li>
+        <li>Elementti 2</li>
+        <li>Elementti 3</li>
+        <li>Elementti 4</li>
+        <li>Elementti 5</li>
+        <li>Elementti 6</li>
+        <li>Elementti 7</li>
+        <li>Elementti 8</li>
+        <li>Elementti 9</li>
+        <li>Elementti 10</li>
+        <li>Elementti 11</li>
+        <li>Elementti 12</li>
+        <li>Elementti 13</li>
+        <li>Elementti 14</li>
+        <li>Elementti 15</li>
+        <li>Elementti 16</li>
+        <li>Elementti 17</li>
+        <li>Elementti 18</li>
+        <li>Elementti 19</li>
+        <li>Elementti 20</li>
+        <li>Elementti 21</li>
+        <li>Elementti 22</li>
+        <li>Elementti 23</li>
+        <li>Elementti 24</li>
+        <li>Elementti 25</li>
+        <li>Elementti 26</li>
+        <li>Elementti 27</li>
+        <li>Elementti 28</li>
+        <li>Elementti 29</li>
+        <li>Elementti 30</li>
+        <li>Elementti 31</li>
+        <li>Elementti 32</li>
+        <li>Elementti 33</li>
+        <li>Elementti 34</li>
+        <li>Elementti 35</li>
+        <li>Elementti 36</li>
+        <li>Elementti 37</li>
+        <li>Elementti 38</li>
+        <li>Elementti 39</li>
+        <li>Elementti 40</li>
+        <li>Elementti 41</li>
+        <li>Elementti 42</li>
+        <li>Elementti 43</li>
+        <li>Elementti 44</li>
+        <li>Elementti 45</li>
+        <li>Elementti 46</li>
+        <li>Elementti 47</li>
+        <li>Elementti 48</li>
+        <li>Elementti 49</li>
+        <li>Elementti 50</li>
+        <li>Elementti 51</li>
+        <li>Elementti 52</li>
+        <li>Elementti 53</li>
+        <li>Elementti 54</li>
+        <li>Elementti 55</li>
+        <li>Elementti 56</li>
+        <li>Elementti 57</li>
+        <li>Elementti 58</li>
+        <li>Elementti 59</li>
+        <li>Elementti 60</li>
+        <li>Elementti 61</li>
+        <li>Elementti 62</li>
+        <li>Elementti 63</li>
+        <li>Elementti 64</li>
+        <li>Elementti 65</li>
+        <li>Elementti 66</li>
+        <li>Elementti 67</li>
+        <li>Elementti 68</li>
+        <li>Elementti 69</li>
+        <li>Elementti 70</li>
+        <li>Elementti 71</li>
+        <li>Elementti 72</li>
+        <li>Elementti 73</li>
+        <li>Elementti 74</li>
+        <li>Elementti 75</li>
+        <li>Elementti 76</li>
+        <li>Elementti 77</li>
+        <li>Elementti 78</li>
+        <li>Elementti 79</li>
+        <li>Elementti 80</li>
+        <li>Elementti 81</li>
+        <li>Elementti 82</li>
+        <li>Elementti 83</li>
+        <li>Elementti 84</li>
+        <li>Elementti 85</li>
+        <li>Elementti 86</li>
+        <li>Elementti 87</li>
+        <li>Elementti 88</li>
+        <li>Elementti 89</li>
+        <li>Elementti 90</li>
+        <li>Elementti 91</li>
+        <li>Elementti 92</li>
+        <li>Elementti 93</li>
+        <li>Elementti 94</li>
+        <li>Elementti 95</li>
+        <li>Elementti 96</li>
+        <li>Elementti 97</li>
+        <li>Elementti 98</li>
+        <li>Elementti 99</li>
+        <li>Elementti 100</li>
+    </ul>
+
+    <div class="scroll-hint-container">
+        <div class="scroll-hint-fade"></div>
+        <div class="scroll-hint">Vieritä nähdäksesi lisää...</div>
+    </div>
+
+
+    <script>
+        window.addEventListener("scroll", function () {
+            var scrollHeight = document.documentElement.scrollHeight;
+            var scrollTop = document.documentElement.scrollTop;
+            var windowHeight = window.innerHeight;
+
+            var bottomPosition = scrollHeight - (scrollTop + windowHeight);
+
+            var hintElement = document.querySelector(".scroll-hint");
+            if (bottomPosition <= 50) {
+                hintElement.style.display = "none";
+            } else {
+                hintElement.style.display = "block";
+            }
+        });
+    </script>
+
+</body>
+
+</html>

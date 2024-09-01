@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="/frontend/js/views/jstree/dist/themes/default/style.min.css">
+    <link rel="stylesheet" type="text/css" href="/frontend/js/views/jstree/dist/themes/default-dark/style.min.css">
+    <style>
+        #nav {
+            height: 100vh;
+            overflow: auto;
+            width: 250px;
+            float: left;
+        }
+
+        #content {
+            margin-left: 260px;
+        }
+
+
+
+
+    </style>
+</head>
+
+<body>
+
+    <div id="nav"></div>
+    <div id="content">
+        <h1>Welcome</h1>
+        <p>Valitse osio vasemmalta.</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+    <script>
+        $(function () {
+            $('#nav').jstree({
+                'core': {
+                    'data': [
+                        {
+                            "text": "Assets",
+                            "data": { "path": "assets" },
+                            "children": [
+                                {
+                                    "text": "Browse",
+                                    "data": { "path": "browse" },
+                                    "children": [] // Tähän voidaan lisätä lisää lapsia tarvittaessa
+                                },
+                                {
+                                    "text": "Create",
+                                    "data": { "path": "create" },
+                                    "children": [] // Tähän voidaan lisätä lisää lapsia tarvittaessa
+                                },
+                                {
+                                    "text": "My",
+                                    "data": { "path": "my" },
+                                    "children": [] // Tähän voidaan lisätä lisää lapsia tarvittaessa
+                                }
+                            ]
+                        },
+                        {
+                            "text": "Settings",
+                            "data": { "path": "settings" },
+                            "children": [
+                                {
+                                    "text": "Security Settings",
+                                    "data": { "path": "security-settings" },
+                                    "children": [] // Tähän voidaan lisätä lisää lapsia tarvittaessa
+                                },
+                                {
+                                    "text": "Display Settings",
+                                    "data": { "path": "display-settings" },
+                                    "children": [] // Tähän voidaan lisätä lisää lapsia tarvittaessa
+                                }
+                            ]
+                        },
+                        {
+                            "text": "Login",
+                            "data": { "path": "login" },
+                            "children": [] // Tämä voi olla tyhjä, jos ei ole alivälilehtiä
+                        },
+                        {
+                            "text": "Register",
+                            "data": { "path": "register" },
+                            "children": [] // Tämä voi olla tyhjä, jos ei ole alivälilehtiä
+                        },
+                        {
+                            "text": "Logout",
+                            "data": { "path": "logout" },
+                            "children": [] // Tämä voi olla tyhjä, jos ei ole alivälilehtiä
+                        },
+                        {
+                            "text": "My Account",
+                            "data": { "path": "my_account" },
+                            "children": [
+                                {
+                                    "text": "My Account Statistics",
+                                    "data": { "path": "my_account_statistics" },
+                                    "children": [] // Tähän voidaan lisätä lisää lapsia tarvittaessa
+                                },
+                                {
+                                    "text": "Edit My Account",
+                                    "data": { "path": "edit_my_account" },
+                                    "children": [] // Tähän voidaan lisätä lisää lapsia tarvittaessa
+                                }
+                            ]
+                        }
+                    ]
+
+                }
+
+            });
+
+
+            $('#nav').on("select_node.jstree", function (e, data) {
+                // Laajenna tai supista solmu
+                $('#nav').jstree('toggle_node', data.node);
+
+                // Rakenna ja päivitä URL käyttäen rekursiivista polkua
+                var fullPath = buildPath(data.node);
+                if (fullPath) {
+                    history.pushState({ path: fullPath }, '', '/' + fullPath);
+                    updateContent(data.node.text);
+                }
+            });
+
+            function buildPath(node) {
+                var path = node.data && node.data.path ? node.data.path : '';
+                var parentId = $('#nav').jstree('get_parent', node);
+
+                while (parentId !== "#" && parentId !== null) {
+                    var parentNode = $('#nav').jstree('get_node', parentId);
+                    if (parentNode.data && parentNode.data.path) {
+                        path = parentNode.data.path + '/' + path;
+                    }
+                    parentId = $('#nav').jstree('get_parent', parentNode);
+                }
+
+                return path;
+            }
+
+            function updateContent(text) {
+                $('#content h1').text(text);
+            }
+
+            window.onpopstate = function (event) {
+                if (event.state) {
+                    updateContentBasedOnPath(event.state.path);
+                } else {
+                    $('#content h1').text("Welcome");
+                    $('#content p').text("Valitse osio vasemmalta.");
+                }
+            };
+
+            function updateContentBasedOnPath(path) {
+                var text = "Tuntematon osa";
+                $('#nav').jstree('deselect_all');
+
+                $('#nav').jstree(true).get_json('#', { flat: true }).forEach(function (node) {
+                    if (node.data && '/' + node.data.path === path) {
+                        text = node.text;
+                        $('#nav').jstree('select_node', node.id);
+                    }
+                });
+
+                updateContent(text);
+            }
+
+            if (window.location.pathname !== '/') {
+                updateContentBasedOnPath(window.location.pathname);
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Class Based Animation</title>
+    <style>
+        .box {
+            width: 300px;
+            height: 100px; /* Muutettu pienemmäksi esimerkkiä varten */
+            background-color: skyblue;
+            transition: opacity 0.15s;
+            opacity: 1;
+            margin-bottom: 10px; /* Lisätty tilaa divien välille */
+        }
+
+        .wide {
+            width: 500px;
+        }
+
+        .hidden {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container"></div>
+
+    <script>
+        // Luodaan kolme diviä ja kolme nappia
+        var container = document.getElementById('container');
+        for (var i = 0; i < 3; i++) {
+            var div = document.createElement('div');
+            div.className = 'box';
+            div.id = 'animatedDiv' + i;
+
+            var button = document.createElement('button');
+            button.innerHTML = 'Toggle Width ' + (i + 1);
+            // Käytä tässä bind-menetelmää välittääksesi div-elementin id:n toggleWidth-funktiolle
+            button.onclick = toggleWidth.bind(button, div.id);
+
+            container.appendChild(div);
+            container.appendChild(button);
+        }
+
+        function toggleWidth(id) {
+            var div = document.getElementById(id);
+
+            // Fade out
+            div.classList.add('hidden');
+
+            setTimeout(function () {
+                // Vaihda leveyden luokkaa
+                div.classList.toggle('wide');
+
+                // Fade in with new width
+                div.classList.remove('hidden');
+            }, 150); // Wait for the fade-out transition to finish
+        }
+    </script>
+
+</body>
+</html>

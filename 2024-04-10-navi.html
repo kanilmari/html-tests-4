@@ -1,0 +1,134 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <style>
+        #nav { height: 100vh; overflow: auto; width: 250px; float: left; }
+        #content { margin-left: 260px; }
+    </style>
+</head>
+<body>
+
+<div id="nav"></div>
+<div id="content">
+    <h1>Welcome</h1>
+    <p>Valitse osio vasemmalta.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+<script>
+$(function() {
+    $('#nav').jstree({
+        'core' : {
+            'data' : [
+                { "text" : "Juuri", "children" : [
+                        { "text" : "Osa 1", "data" : {"path":"osa-1"} },
+                        { "text" : "Osa 2", "data" : {"path":"osa-2"} },
+                        { "text" : "Osa 3", "data" : {"path":"osa-3"} }
+                    ]},
+            ]
+        }
+    });
+
+    // jsTree tapahtumankäsittelijä
+    $('#nav').on("select_node.jstree", function (e, data) {
+        console.log('test');
+        var newPath = data.node.data.path;
+        if(newPath) {
+            history.pushState(null, '', newPath);
+            $('#content h1').text(data.node.text);
+        }
+    });
+});
+</script>
+
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <style>
+        #nav { height: 100vh; overflow: auto; width: 250px; float: left; }
+        #content { margin-left: 260px; }
+    </style>
+</head>
+<body>
+
+<div id="nav"></div>
+<div id="content">
+    <h1>Welcome</h1>
+    <p>Valitse osio vasemmalta.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+<script>
+$(function() {
+    $('#nav').jstree({
+        'core' : {
+            'data' : [
+                { "text" : "Juuri", "children" : [
+                        { "text" : "Osa 1", "data" : {"path":"osa-1"} },
+                        { "text" : "Osa 2", "data" : {"path":"osa-2"} },
+                        { "text" : "Osa 3", "data" : {"path":"osa-3"} }
+                    ]},
+            ]
+        }
+    });
+
+    // jsTree tapahtumankäsittelijä
+    $('#nav').on("select_node.jstree", function (e, data) {
+        var newPath = data.node.data.path;
+        if(newPath) {
+            history.pushState({path: newPath}, '', newPath);
+            updateContent(data.node.text);
+        }
+    });
+
+    // Päivitä sisältö
+    function updateContent(text) {
+        $('#content h1').text(text);
+    }
+
+    // Popstate event handler
+    window.onpopstate = function(event) {
+        if(event.state) {
+            updateContentBasedOnPath(event.state.path);
+        } else {
+            // Jos ei ole tilaa (kuten alkuperäisessä latauksessa), aseta oletus
+            $('#content h1').text("Welcome");
+            $('#content p').text("Valitse osio vasemmalta.");
+        }
+    };
+
+    function updateContentBasedOnPath(path) {
+        // Oletus sisältö, jos polkua ei tunnisteta
+        var text = "Tuntematon osa";
+        $('#nav').jstree('deselect_all'); // Poista valinta kaikista solmuista
+
+        // Etsi vastaava solmu polun perusteella ja päivitä sisältö
+        $('#nav').jstree(true).get_json('#', {flat:true}).forEach(function(node) {
+            if(node.data && node.data.path === path) {
+                text = node.text;
+                $('#nav').jstree('select_node', node.id); // Valitse solmu
+            }
+        });
+
+        updateContent(text);
+    }
+
+    // Käynnistä sivun sisällön päivitys URL:n perusteella sivun latauksen yhteydessä
+    if(window.location.pathname !== '/') {
+        updateContentBasedOnPath(window.location.pathname);
+    }
+});
+</script>
+
+</body>
+</html>

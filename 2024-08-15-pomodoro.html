@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer with Time Display</title>
+    <style>
+        #timeDisplay {
+            font-size: 2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pomodoro Timer</h1>
+    <button id="toggleButton">Start Timer</button>
+    <button id="testBeepButton">Test Beep</button>
+    <div id="timeDisplay">00:00:00</div>
+    
+    <script>
+        let timerOn = false;
+        let timerInterval = null;
+
+        const toggleButton = document.getElementById('toggleButton');
+        const testBeepButton = document.getElementById('testBeepButton');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        toggleButton.addEventListener('click', () => {
+            if (timerOn) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        });
+
+        testBeepButton.addEventListener('click', () => {
+            beep();
+        });
+
+function startTimer() {
+    timerOn = true;
+    toggleButton.textContent = "Stop Timer";
+    updateClock(); // Update immediately
+    checkTime(); // Check time immediately
+    timerInterval = setInterval(() => {
+        updateClock();
+        checkTime();
+    }, 500); // Update every...
+}
+startTimer();
+
+function stopTimer() {
+    timerOn = false;
+    toggleButton.textContent = "Start Timer";
+    clearInterval(timerInterval);
+    timeDisplay.textContent = "00:00:00"; // Show 00:00:00 when stopped
+}
+
+function updateClock() {
+    if (timerOn) {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+}
+
+
+        function checkTime() {
+            const now = new Date();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            if (seconds === 45 && (minutes === 13 || minutes === 25 || minutes === 30 || minutes === 55)) {
+                beep();
+            }
+        }
+
+function beep() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = 'sine'; // Create a simple sine wave
+    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime); // Frequency in Hz
+
+    // Set the volume to be quieter (0.1 is 10% of full volume)
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start();
+    setTimeout(() => {
+        oscillator.stop();
+        audioContext.close();
+    }, 1000); // Beep duration in milliseconds
+}
+
+    </script>
+</body>
+</html>

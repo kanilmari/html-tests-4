@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree View Example</title>
+    <style>
+        * {
+            transition: all 0.3s ease;
+        }
+
+        #tree-container {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .tree-node {
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid black;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            width: inherit;
+        }
+
+        .tree-node-label {
+            display: flex;
+            align-items: center;
+            height: 20px;
+
+        }
+
+        .tree-node-label::before {
+            content: "\25B6";
+            color: black;
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+        }
+
+        .tree-node-open>.tree-node-label::before {
+            content: "\25BC";
+        }
+
+        .hidden {
+            height: 0;
+            /* Näyttää vain pienen osan sisällöstä */
+            overflow: hidden;
+
+        }
+
+        .tree-node-open>.hidden {
+            height: 500px;
+        }
+
+        .tree-node div.hidden,
+        .tree-node div:not(.hidden) {
+            margin-left: 10px;
+        }
+
+        input,
+        textarea {
+            padding: 4px;
+            margin: 2px 0 4px;
+            border: 1px solid #ccc;
+
+        }
+
+        label {
+            margin-right: 8px;
+            display: block;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tree-container"></div>
+
+    <script>
+        const treeData = {
+            "id": "root",
+            "name": "Root",
+            "children": [
+                {
+                    "id": "root_basicInfo",
+                    "name": "Perustiedot",
+                    "children": [
+                        {
+                            "id": "root_basicInfo_name-field",
+                            "name": "Name",
+                            "type": "text",
+                            "placeholder": "Enter title"
+                        },
+                        {
+                            "id": "root_basicInfo_description-field",
+                            "name": "Description",
+                            "type": "textarea",
+                            "placeholder": "Enter description"
+                        },
+                        {
+                            "id": "root_basicInfo_phone-field",
+                            "name": "Phone",
+                            "type": "text",
+                            "placeholder": "Enter phone number"
+                        },
+                        {
+                            "id": "root_basicInfo_email-field",
+                            "name": "Email",
+                            "type": "email",
+                            "placeholder": "Enter email"
+                        }
+                    ]
+                },
+                {
+                    "id": "root_locations",
+                    "name": "Locations",
+                    "children": [
+                        {
+                            "id": "locations_finland",
+                            "name": "Suomi",
+                            "children": [
+                                {
+                                    "id": "root_locations_helsinki",
+                                    "name": "Helsinki",
+                                    "address": "Mannerheimintie 1, 00100 Helsinki"
+                                },
+                                {
+                                    "id": "root_locations_tampere",
+                                    "name": "Tampere",
+                                    "address": "Hämeenkatu 25, 33100 Tampere"
+                                }
+
+                            ]
+                        },
+                        {
+                            "id": "locations_usa",
+                            "name": "USA",
+                            "children": [
+                                {
+                                    "id": "locations_new_york",
+                                    "name": "New York",
+                                    "address": "Jokin osoite NY:ssä"
+                                },
+                                {
+                                    "id": "locations_california",
+                                    "name": "Kalifornia",
+                                    "children": [
+                                        {
+                                            "id": "locations_los_angeles",
+                                            "name": "Los Angeles",
+                                            "address": "Jokin osoite LA:ssä"
+                                        },
+                                        {
+                                            "id": "locations_san_francisco",
+                                            "name": "San Francisco",
+                                            "address": "Jokin osoite SF:ssä"
+                                        }
+
+                                    ]
+                                }
+
+                            ]
+                        }
+
+                    ]
+                },
+                {
+                    "id": "root_categories",
+                    "name": "Categories",
+                    "children": [
+                        {
+                            "id": "root_categories_1",
+                            "name": "Elektroniikka",
+                            "type": "radio",
+                            "description": "Elektroniikkalaitteet ja tarvikkeet"
+                        },
+                        {
+                            "id": "root_categories_2",
+                            "name": "Vaatteet",
+                            "type": "radio",
+                            "description": "Vaatteet ja asusteet"
+                        }
+                    ]
+                },
+                {
+                    "id": "root_products",
+                    "name": "Products",
+                    "children": [
+                        {
+                            "id": "root_products_1",
+                            "name": "iPhone 14 Pro",
+                            "description": "Applen uusin älypuhelin",
+                            "price": 1099,
+                            "categoryId": "root_categories_1",
+                            "locations": ["root_locations_1", "root_locations_2"]
+                        },
+                        {
+                            "id": "root_products_2",
+                            "name": "Farkut",
+                            "description": "Mustat farkut",
+                            "price": 59.90,
+                            "categoryId": "root_categories_2",
+                            "locations": ["root_locations_2"]
+                        }
+                    ]
+                }
+            ]
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const treeContainer = document.getElementById('tree-container');
+            treeData.children.forEach(child => {
+                const childNode = createTreeNode(child);
+                treeContainer.appendChild(childNode);
+            });
+        });
+
+        function createTreeNode(data) {
+            const treeNode = document.createElement('div');
+            treeNode.classList.add('tree-node');
+            treeNode.id = data.id;
+
+            if (data.type) {
+                const inputElement = document.createElement(data.type === "textarea" ? "textarea" : "input");
+                if (data.type !== "textarea") {
+                    inputElement.type = data.type;
+                }
+                if (data.type === "radio") {
+                    inputElement.name = "category"; // Kaikille kategorian radio-napeille sama nimi
+                    inputElement.value = data.id; // Käytä uniikkia arvoa, esim. id:tä
+                } else {
+                    inputElement.placeholder = data.placeholder || "";
+                    inputElement.name = data.name;
+                }
+
+                const label = document.createElement('label');
+                label.textContent = data.name + ": ";
+                label.appendChild(inputElement);
+                treeNode.appendChild(label);
+            } else {
+                const treeNodeLabel = document.createElement('div');
+                treeNodeLabel.classList.add('tree-node-label');
+                treeNodeLabel.textContent = data.name;
+                treeNode.appendChild(treeNodeLabel);
+
+                if (data.children && data.children.length > 0) {
+                    const treeNodeChildren = document.createElement('div');
+                    treeNodeChildren.classList.add('hidden');
+                    data.children.forEach(child => {
+                        const childNode = createTreeNode(child);
+                        treeNodeChildren.appendChild(childNode);
+                    });
+                    treeNode.appendChild(treeNodeChildren);
+                }
+            }
+
+            treeNode.addEventListener('click', function (event) {
+                event.stopPropagation();
+                const childrenContainer = this.querySelector('div:not(.tree-node-label)');
+                if (childrenContainer) {
+                    childrenContainer.classList.toggle('hidden');
+                    this.classList.toggle('tree-node-open');
+                }
+            });
+
+            return treeNode;
+        }
+
+
+        function treeNodeClickListener(event) {
+            event.stopPropagation();
+            const childrenContainer = this.querySelector('div:not(.tree-node-label)');
+            if (childrenContainer) {
+                childrenContainer.classList.toggle('hidden');
+                this.classList.toggle('tree-node-open');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Test</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <script src="https://unpkg.com/pica@7/dist/pica.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pica/6.1.1/pica.min.js"></script>
+	<link rel="stylesheet" href="add_pic.css">
+</head>
+
+<body>
+
+    <input class="add-pic" type="file" id="imageUpload" />
+
+    <button class="add-pic" onclick="rotateImage()">Rotate image</button>
+
+    <button id="picCropButton" class="add-pic" onclick="cropHandler()">Crop image</button>
+
+    <!-- <button id="squareCrop">Crop square</button> -->
+    <div class="pic-slider-container">
+        <div class="pic-edit-slider-row">
+            <label for="brightness">Brightness:</label>
+            <!-- <input type="range" id="brightness" value="0.7182818284590451" onchange="adjustSliderValue(this.id)" /> -->
+            <input class="add-pic" type="range" id="brightness" min="0" max="1.4365636569180902" step="0.001436563657" onchange="adjustBrightness()" />
+            <button class="add-pic" onclick="resetValue('brightness')">Reset</button>
+        </div>
+
+        <div class="pic-edit-slider-row">
+            <label for="contrast">Contrast:</label>
+            <input class="add-pic" type="range" id="contrast" min="0.7" max="1.3" step="0.0006" onchange="adjustContrast()" />
+            <button class="add-pic" onclick="resetValue('contrast')">Reset</button>
+        </div>
+
+        <div class="pic-edit-slider-row">
+            <label for="colorTemperature">Color temp:</label>
+            <input class="add-pic" type="range" id="colorTemperature" min="-1" max="1" step="0.002"
+                onchange="adjustColorTemperature()" />
+            <button class="add-pic" onclick="resetValue('colorTemperature')">Reset</button>
+        </div>
+
+        <div class="pic-edit-slider-row">
+            <label for="saturation">Saturation:</label>
+            <input class="add-pic" type="range" id="saturation" min="0" max="2" step="0.0015" oninput="adjustSaturation()" />
+            <button class="add-pic" onclick="resetValue('saturation')">Reset</button>
+        </div>
+
+        <div class="button-row">
+            <button id="bypassFilters" onmousedown="showOriginal(true)" onmouseup="showOriginal(false)">Compare</button>
+            <button class="add-pic" id="squareCrop">Crop square</button>
+        </div>
+    </div>
+    <div id="imageContainer" style="display: inline-block; position: relative;">
+        <img id="preview" />
+        <canvas id="cropCanvas"></canvas>
+        <div id="markers" style="position: absolute; top: 0; left: 0; display: none;">
+            <!-- Kulmaneliöt -->
+            <div class="marker" id="top-left"></div>
+            <div class="marker" id="top-right"></div>
+            <div class="marker" id="bottom-left"></div>
+            <div class="marker" id="bottom-right"></div>
+            <!-- Sivuneliöt -->
+            <div class="marker" id="top-center"></div>
+            <div class="marker" id="bottom-center"></div>
+            <div class="marker" id="left-center"></div>
+            <div class="marker" id="right-center"></div>
+        </div>
+    </div>
+	<script src="add_pic.js"></script>
+</body>
+
+</html>

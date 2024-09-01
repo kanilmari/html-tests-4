@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Input</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+        }
+        .tagged-input-container {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid #333;
+            padding: 5px;
+            background-color: #1e1e1e;
+            cursor: text;
+        }
+        .tagged-input-container input {
+            background-color: #1e1e1e;
+            border: none;
+            color: #e0e0e0;
+            outline: none;
+            padding: 5px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .tagged-input-container .keyword {
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 3px;
+            padding: 5px;
+            margin: 2px;
+            display: flex;
+            align-items: center;
+            color: #e0e0e0;
+            cursor: grab;
+        }
+        .tagged-input-container .keyword span {
+            margin-left: 5px;
+        }
+        .tagged-input-container .keyword .remove-btn {
+            cursor: pointer;
+            font-weight: bold;
+            color: #ff5252;
+            border: none;
+            background: none;
+            margin-right: 5px;
+            font-size: 20px;
+        }
+        .tagged-input-container .keyword .remove-btn:hover {
+            color: #ff1744;
+        }
+        .error-message {
+            color: #ff5252;
+            margin-top: 10px;
+        }
+        .clear-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border: none;
+            background-color: #ff5252;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .clear-btn:hover {
+            background-color: #ff1744;
+        }
+    </style>
+</head>
+<body>
+
+<div id="add-asset-form"></div>
+
+<script>
+
+
+function createTaggedSearchFieldSet(containerId) {
+    const container = document.getElementById(containerId);
+    const uniqueId = containerId + '-' + Date.now();
+
+    const taggedInputContainer = document.createElement('div');
+    taggedInputContainer.id = uniqueId + '-taggedInputContainer';
+    taggedInputContainer.className = 'tagged-input-container';
+    taggedInputContainer.addEventListener('click', () => input.focus());
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = uniqueId + '-input';
+    input.placeholder = 'Enter keywords separated by commas';
+
+    const clearButton = document.createElement('button');
+    clearButton.id = uniqueId + '-clearButton';
+    clearButton.className = 'clear-btn';
+    clearButton.textContent = 'Clear All';
+
+    const errorMessage = document.createElement('div');
+    errorMessage.id = uniqueId + '-errorMessage';
+    errorMessage.className = 'error-message';
+
+    taggedInputContainer.appendChild(input);
+    container.appendChild(taggedInputContainer);
+    container.appendChild(clearButton);
+    container.appendChild(errorMessage);
+
+    const keywords = [];
+
+    input.addEventListener('keydown', function(event) {
+        if (event.key === ',') {
+            event.preventDefault();
+            let inputText = event.target.value.trim();
+            if (inputText) {
+                addKeyword(inputText);
+                event.target.value = '';
+            }
+        } else if (event.key === 'Backspace' && input.value === '') {
+            event.preventDefault(); // Prevent default backspace behavior
+            removeLastKeyword();
+        }
+    });
+
+    clearButton.addEventListener('click', function() {
+        clearAllKeywords();
+    });
+
+    function addKeyword(keyword) {
+        if (keywords.includes(keyword)) {
+            errorMessage.textContent = `Keyword "${keyword}" is already added.`;
+        } else {
+            errorMessage.textContent = '';
+            keywords.push(keyword);
+
+            const keywordElement = document.createElement('div');
+            keywordElement.className = 'keyword';
+            keywordElement.draggable = true;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.textContent = '×';
+            removeBtn.onclick = function() {
+                taggedInputContainer.removeChild(keywordElement);
+                keywords.splice(keywords.indexOf(keyword), 1);
+            };
+
+            const keywordText = document.createElement('span');
+            keywordText.textContent = keyword;
+
+            keywordElement.appendChild(removeBtn);
+            keywordElement.appendChild(keywordText);
+            taggedInputContainer.insertBefore(keywordElement, input);
+
+            // Drag and Drop Event Handlers
+            keywordElement.addEventListener('dragstart', handleDragStart);
+            keywordElement.addEventListener('dragover', handleDragOver);
+            keywordElement.addEventListener('drop', handleDrop);
+            keywordElement.addEventListener('dragend', handleDragEnd);
+        }
+    }
+
+    function removeLastKeyword() {
+        if (keywords.length > 0) {
+            const lastKeyword = keywords.pop();
+            const lastKeywordElement = taggedInputContainer.querySelector('.keyword:last-of-type');
+            if (lastKeywordElement) {
+                taggedInputContainer.removeChild(lastKeywordElement);
+            }
+            input.value = lastKeyword;
+        }
+    }
+
+    function clearAllKeywords() {
+        taggedInputContainer.querySelectorAll('.keyword').forEach(keywordElement => {
+            taggedInputContainer.removeChild(keywordElement);
+        });
+        keywords.length = 0;
+        errorMessage.textContent = '';
+    }
+
+    // Drag and Drop Functions
+    let dragged;
+
+    function handleDragStart(event) {
+        dragged = event.target;
+        event.target.style.opacity = 0.5;
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+        const target = event.target;
+        if (target && target !== dragged && target.className === 'keyword') {
+            const rect = target.getBoundingClientRect();
+            const next = (event.clientX - rect.left) > (rect.width / 2);
+            if (next) {
+                taggedInputContainer.insertBefore(dragged, target.nextSibling);
+            } else {
+                taggedInputContainer.insertBefore(dragged, target);
+            }
+        }
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        if (event.target.className === 'keyword' && event.target !== dragged) {
+            const rect = event.target.getBoundingClientRect();
+            const next = (event.clientX - rect.left) > (rect.width / 2);
+            if (next) {
+                taggedInputContainer.insertBefore(dragged, event.target.nextSibling);
+            } else {
+                taggedInputContainer.insertBefore(dragged, event.target);
+            }
+            updateKeywordsOrder();
+        }
+    }
+
+    function handleDragEnd(event) {
+        event.target.style.opacity = '';
+    }
+
+    function updateKeywordsOrder() {
+        keywords.length = 0;
+        taggedInputContainer.querySelectorAll('.keyword span').forEach(span => {
+            keywords.push(span.textContent);
+        });
+    }
+}
+
+// Example usage:
+createTaggedSearchFieldSet("add-asset-form");
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>

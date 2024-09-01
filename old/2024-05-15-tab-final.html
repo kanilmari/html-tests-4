@@ -1,0 +1,126 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --border-color: #ff0000; /* Reunuksen väri */
+      --background-color: #ffffff; /* Painikkeen taustaväri */
+      --font-color: #000000; /* Tekstin väri */
+    }
+
+    .container {
+      position: relative;
+      width: 186px; /* Adjust width to match the larger clip-path */
+      height: 53px; /* Adjust height to match the larger clip-path */
+    }
+
+    .container .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      clip-path: path("M 186 -2 L 181 -2 A 7 7 0 0 1 174 5 L 7 5 A 7 7 0 0 0 0 12 L 0 41 A 7 7 0 0 0 7 48 L 174 48 A 7 7 0 0 1 181 55 L 186 55 L 186 -2 Z");
+      background-color: var(--border-color); /* Border color */
+    }
+
+    .container .tab_button {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      color: var(--font-color);
+      padding: 10px 10px;
+      width: 183px;
+      margin-left: auto;
+      margin-right: 0;
+      border: none;
+      outline: none;
+      text-align: left;
+      cursor: pointer;
+      font-size: 17px;
+      clip-path: path("M 186 0 L 183 0 A 7 7 0 0 1 176 7 L 9 7 A 7 7 0 0 0 2 14 L 2 39 A 7 7 0 0 0 9 46 L 176 46 A 7 7 0 0 1 183 53 L 186 53 L 186 0 Z");
+      height: 53px;
+      background-color: var(--background-color); /* Background color */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="background"></div>
+    <button class="tab_button">Button Text</button>
+  </div>
+</body>
+</html>-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tab_button {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: var(--font-color);
+      padding: 10px;
+      border: none;
+      outline: none;
+      text-align: left;
+      cursor: pointer;
+      font-size: 17px;
+      background: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="button-container" class="container"></div>
+
+  <script>
+    const container = document.getElementById('button-container');
+    
+    const borderPath = "M 186 -2 L 181 -2 A 7 7 0 0 1 174 5 L 7 5 A 7 7 0 0 0 0 12 L 0 41 A 7 7 0 0 0 7 48 L 174 48 A 7 7 0 0 1 181 55 L 186 55 L 186 -2 Z";
+    const buttonPath = "M 186 0 L 183 0 A 7 7 0 0 1 176 7 L 9 7 A 7 7 0 0 0 2 14 L 2 39 A 7 7 0 0 0 9 46 L 176 46 A 7 7 0 0 1 183 53 L 186 53 L 186 0 Z";
+    
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    // Create SVG element
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("width", "186");
+    svg.setAttribute("height", "53");
+    svg.setAttribute("viewBox", "0 0 186 53");
+
+    // Create border path
+    const border = document.createElementNS(svgNS, "path");
+    border.setAttribute("d", borderPath);
+    border.setAttribute("fill", "#ff0000"); // Border color
+    svg.appendChild(border);
+
+    // Create button path
+    const button = document.createElementNS(svgNS, "path");
+    button.setAttribute("d", buttonPath);
+    button.setAttribute("fill", "#ffffff"); // Button background color
+    svg.appendChild(button);
+
+    // Append SVG to container
+    container.appendChild(svg);
+
+    // Create button element
+    const buttonElement = document.createElement("button");
+    buttonElement.classList.add("tab_button");
+    buttonElement.innerText = "Button Text";
+    container.appendChild(buttonElement);
+  </script>
+</body>
+</html>
+

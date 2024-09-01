@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Editor with Phased Crop and Rotate</title>
+    <!-- Cropper.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <!-- Mukautettu CSS -->
+    <style>
+        /* Poistetaan himmennys rajausalueen sisäpuolelta */
+        .cropper-drag-box {
+            background-color: rgba(0,0,0,0.5) !important;
+            opacity: unset !important;
+        }
+
+        .cropper-face {
+            background-color: unset !important;
+        }
+
+        .step-container {
+            display: none;
+        }
+
+        .step-container.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload and Edit an Image with Phased Actions</h1>
+    <form id="upload-form" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required><br><br>
+
+        <div id="rotate-step" class="step-container">
+            <h2>Step 1: Rotate Image</h2>
+            <canvas id="rotate-canvas"></canvas>
+            <br>
+            <button type="button" id="rotate-left">Rotate Left 90°</button>
+            <button type="button" id="rotate-right">Rotate Right 90°</button>
+            <br><br>
+            <button type="button" id="go-to-crop">Next: Crop Image</button>
+        </div>
+
+        <div id="crop-step" class="step-container">
+            <h2>Step 2: Crop Image</h2>
+            <div>
+                <img id="image" style="max-width: 100%;" />
+            </div>
+            <br>
+            <button type="button" id="reset-crop">Reset and Center Crop</button>
+            <br><br>
+        </div>
+
+        <input type="hidden" name="cropData" id="cropData">
+        <input type="submit" value="Upload and Edit">
+    </form>
+
+    <h2>Edited Image:</h2>
+    <img id="edited-image" src="" alt="Edited Image" style="display:none;">
+    <p id="processing-time"></p>
+
+    <!-- Cropper.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+    <script>
+        let cropper;
+        const imageElement = document.getElementById('image');
+        const rotateCanvas = document.getElementById('rotate-canvas');
+        const cropDataInput = document.getElementById('cropData');
+        const rotateStepContainer = document.getElementById('rotate-step');
+        const cropStepContainer = document.getElementById('crop-step');
+
+        document.querySelector('input[name="image"]').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    startRotationPhase(img);
+                };
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        function startRotationPhase(img) {
+            rotateCanvas.width = img.width;
+            rotateCanvas.height = img.height;
+            const ctx = rotateCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            rotateStepContainer.classList.add('active');
+            cropStepContainer.classList.remove('active');
+        }
+
+        function startCropPhase() {
+            const ctx = rotateCanvas.getContext('2d');
+            const rotatedImage = new Image();
+            rotatedImage.src = rotateCanvas.toDataURL();
+            rotatedImage.onload = function() {
+                imageElement.src = rotatedImage.src;
+                initializeCropper();
+            };
+
+            rotateStepContainer.classList.remove('active');
+            cropStepContainer.classList.add('active');
+        }
+
+        function initializeCropper() {
+            if (cropper) {
+                cropper.destroy();
+            }
+            cropper = new Cropper(imageElement, {
+                aspectRatio: 1, // Neliön muotoinen rajaus
+                viewMode: 1,
+                modal: false, // Poistaa himmentävän kalvon rajausalueen sisältä
+                ready: function () {
+                    resetCropBox(); // Asetetaan rajaus maksimikokoon ja keskelle heti alussa
+                }
+            });
+        }
+
+        // Pyöräytyspainikkeet
+        document.getElementById('rotate-left').addEventListener('click', function() {
+            rotateImage(-90);
+        });
+
+        document.getElementById('rotate-right').addEventListener('click', function() {
+            rotateImage(90);
+        });
+
+        function rotateImage(degrees) {
+            const ctx = rotateCanvas.getContext('2d');
+            const img = new Image();
+            img.src = rotateCanvas.toDataURL();
+            img.onload = function() {
+                const angle = degrees * Math.PI / 180;
+                const sin = Math.abs(Math.sin(angle));
+                const cos = Math.abs(Math.cos(angle));
+
+                // Uuden canvaksen mitat, jotta kuva ei leikkaudu
+                const newWidth = img.width * cos + img.height * sin;
+                const newHeight = img.width * sin + img.height * cos;
+
+                // Uudelleenasetetaan canvaksen koko ja puhdistetaan se
+                rotateCanvas.width = newWidth;
+                rotateCanvas.height = newHeight;
+                ctx.clearRect(0, 0, newWidth, newHeight);
+
+                // Pyöräytetään ja piirretään kuva uudelleen keskitettynä
+                ctx.translate(newWidth / 2, newHeight / 2);
+                ctx.rotate(angle);
+                ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                ctx.resetTransform();
+            };
+        }
+
+        // Siirtyminen rajaukseen
+        document.getElementById('go-to-crop').addEventListener('click', function() {
+            startCropPhase();
+        });
+
+        // Rajauksen palautus maksimikokoon ja keskitys
+        document.getElementById('reset-crop').addEventListener('click', function() {
+            resetCropBox();
+        });
+
+        // Funktio rajauksen palauttamiseksi maksimikokoon ja keskittämiseksi
+        function resetCropBox() {
+            const containerData = cropper.getContainerData();
+            const canvasData = cropper.getCanvasData();
+            const size = Math.min(canvasData.width, canvasData.height);
+            cropper.setCropBoxData({
+                left: (canvasData.width - size) / 2,
+                top: (canvasData.height - size) / 2,
+                width: size,
+                height: size
+            });
+        }
+
+        document.getElementById('upload-form').onsubmit = async function(e) {
+            e.preventDefault();
+
+            // Convert cropped image to blob and add to FormData
+            const croppedCanvas = cropper.getCroppedCanvas();
+            croppedCanvas.toBlob(async (blob) => {
+                const formData = new FormData(this);
+                formData.set('image', blob, 'cropped-image.png');
+
+                let response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    let data = await response.json();
+                    let imgElement = document.getElementById('edited-image');
+                    imgElement.src = data.url;
+                    imgElement.style.display = 'block';
+
+                    let timeElement = document.getElementById('processing-time');
+                    timeElement.textContent = "Processing took: " + data.duration + " milliseconds";
+                } else {
+                    alert("Failed to upload and edit image.");
+                }
+            });
+        };
+    </script>
+</body>
+</html>

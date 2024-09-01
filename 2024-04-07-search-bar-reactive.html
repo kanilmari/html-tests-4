@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hakupalkin Piilotus Animaatio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding-top: 60px;
+            /* Varmista, että sisältö ei peity hakupalkin alle */
+        }
+
+        .search-bar {
+            position: fixed;
+            top: 0;
+            opacity: 1;
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .narrow-search-bar {
+            display: none;
+            /* Piilotetaan kapea hakupalkki aluksi */
+            position: fixed;
+            top: 0;
+            opacity: 1;
+            right: 0;
+            width: 200px;
+            /* Kapeamman hakupalkin leveys */
+            background-color: #f8f9fa;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s, width 0.3s;
+            z-index: 1001;
+        }
+
+        .content {
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="search-bar" id="searchBar">
+        <input type="text" placeholder="Hae..." style="width: 100%; padding: 10px;">
+    </div>
+
+    <div class="narrow-search-bar" id="narrowSearchBar">
+        <input type="text" placeholder="Hae..." style="width: 100%; padding: 10px;">
+    </div>
+
+
+    <div class="content">
+        <p>Scrollaa alas nähdäksesi animaation.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec non augue nec eros varius mollis eget ac dui.
+            Morbi ac dui sed orci sollicitudin scelerisque. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Proin vel neque quis ipsum egestas tincidunt. Aliquam erat volutpat. Donec
+            hendrerit, nunc et aliquet blandit, erat lorem efficitur ipsum, sit amet gravida nunc nisl sed nunc.</p>
+        <!-- Lisää sisältöä tämän alle -->
+    </div>
+
+    <script>
+        let lastScrollTop = 0;
+        const searchBar = document.getElementById('searchBar');
+        const narrowSearchBar = document.getElementById('narrowSearchBar');
+        const searchBarInput = searchBar.querySelector('input');
+        const narrowSearchBarInput = narrowSearchBar.querySelector('input');
+    
+        // Funktio tekstin synkronointiin kahden hakupalkin välillä
+        function syncInput(sourceInput, targetInput) {
+            targetInput.value = sourceInput.value;
+        }
+    
+        // Kuuntele molempien hakupalkkien input-tapahtumia ja synkronoi teksti
+        searchBarInput.addEventListener('input', () => syncInput(searchBarInput, narrowSearchBarInput));
+        narrowSearchBarInput.addEventListener('input', () => syncInput(narrowSearchBarInput, searchBarInput));
+    
+        window.addEventListener('scroll', function() {
+            let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            if (currentScroll > lastScrollTop) {
+                // Scroll down
+                searchBar.style.opacity = '0';
+                setTimeout(function() { // Lisätään viive ennen kuin kapea hakupalkki tuodaan esiin
+                    narrowSearchBar.style.opacity = '1';
+                    narrowSearchBar.style.display = 'block';
+                }, 0); // 300ms viive
+            } else {
+                // Scroll up
+                setTimeout(function() { // Lisätään viive ennen kuin iso hakupalkki tuodaan esiin
+                    searchBar.style.opacity = '1';
+                }, 0); // 300ms viive
+                narrowSearchBar.style.opacity = '0';
+            }
+            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Estetään negatiiviset arvot
+        });
+    </script>
+    
+
+
+</body>
+
+</html>
