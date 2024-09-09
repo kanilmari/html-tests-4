@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EG-kuvaus</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #444;
+        }
+
+        .eneagram-item {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: inline-block;
+            width: 180px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 60%;
+        }
+
+        .range-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #007BFF;
+            margin-left: 10px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 20px auto;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 5px solid #007BFF;
+            border-radius: 4px;
+        }
+
+        pre {
+            background-color: #eee;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        h3 {
+            color: #333;
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Enneagrammi-vektorin säätö</h2>
+        <form id="eneagrammiForm">
+            <div class="eneagram-item">
+                <label for="eneagram1">1 - Perfektionisti</label>
+                <input type="range" id="eneagram1" name="eneagram1" min="1" max="9" value="5">
+                <span id="value1" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram2">2 - Auttaja</label>
+                <input type="range" id="eneagram2" name="eneagram2" min="1" max="9" value="5">
+                <span id="value2" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram3">3 - Suorittaja</label>
+                <input type="range" id="eneagram3" name="eneagram3" min="1" max="9" value="5">
+                <span id="value3" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram4">4 - Individualisti</label>
+                <input type="range" id="eneagram4" name="eneagram4" min="1" max="9" value="5">
+                <span id="value4" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram5">5 - Tarkkailija</label>
+                <input type="range" id="eneagram5" name="eneagram5" min="1" max="9" value="5">
+                <span id="value5" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram6">6 - Lojaali</label>
+                <input type="range" id="eneagram6" name="eneagram6" min="1" max="9" value="5">
+                <span id="value6" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram7">7 - Nautiskelija</label>
+                <input type="range" id="eneagram7" name="eneagram7" min="1" max="9" value="5">
+                <span id="value7" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram8">8 - Haastaja</label>
+                <input type="range" id="eneagram8" name="eneagram8" min="1" max="9" value="5">
+                <span id="value8" class="range-value">5</span>
+            </div>
+            <div class="eneagram-item">
+                <label for="eneagram9">9 - Sovittelija</label>
+                <input type="range" id="eneagram9" name="eneagram9" min="1" max="9" value="5">
+                <span id="value9" class="range-value">5</span>
+            </div>
+            <button type="button" onclick="saveValues()">Tallenna</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById("eneagrammiForm");
+
+        // Päivitetään liukusäätimen arvo näkyviin
+        form.querySelectorAll("input[type='range']").forEach(input => {
+            input.addEventListener("input", function() {
+                document.getElementById("value" + this.id.slice(-1)).textContent = this.value;
+            });
+        });
+
+        // Funktio arvojen tallentamiseen ja näyttämiseen HTML:ssä
+        function saveValues() {
+            const values = {};
+            form.querySelectorAll("input[type='range']").forEach(input => {
+                const eneagramName = getEneagramName(input.name);
+                values[eneagramName] = input.value;
+            });
+
+            const personalityDescription = getPersonalityDescription(values);
+            document.getElementById("result").innerHTML = `
+                <h3>Tallennetut arvot</h3>
+                <pre>${JSON.stringify(values, null, 2)}</pre>
+                <h3>Persoonallisuuskuvaus</h3>
+                <p>${personalityDescription}</p>
+            `;
+        }
+
+        // Funktio, joka palauttaa tyypin nimen
+        function getEneagramName(eneagramNumber) {
+            const names = {
+                "eneagram1": "1 - Perfektionisti",
+                "eneagram2": "2 - Auttaja",
+                "eneagram3": "3 - Suorittaja",
+                "eneagram4": "4 - Individualisti",
+                "eneagram5": "5 - Tarkkailija",
+                "eneagram6": "6 - Lojaali",
+                "eneagram7": "7 - Nautiskelija",
+                "eneagram8": "8 - Haastaja",
+                "eneagram9": "9 - Sovittelija"
+            };
+            return names[eneagramNumber];
+        }
+
+        // Funktio persoonallisuuskuvauksen antamiseen kombinaatioiden perusteella
+        function getPersonalityDescription(values) {
+            let description = "";
+
+            const eneagram1 = parseInt(values["Perfektionisti"]);
+            const eneagram2 = parseInt(values["Auttaja"]);
+            const eneagram3 = parseInt(values["Suorittaja"]);
+            const eneagram9 = parseInt(values["Sovittelija"]);
+
+            // Esimerkki kombinaatioista ja niiden kuvauksista
+            if (eneagram9 > 6 && eneagram3 > 6) {
+                description += "Olet Sovittelija ja Suorittaja. Sinulle on tärkeää saavuttaa tavoitteita ja säilyttää harmonia ympärilläsi. ";
+            } else if (eneagram1 > 6 && eneagram2 > 6) {
+                description += "Olet Perfektionisti ja Auttaja. Pyrit aina tekemään asiat oikein ja auttamaan muita saavuttamaan parhaansa. ";
+            } else if (eneagram5 > 6 && eneagram6 > 6) {
+                description += "Olet Tarkkailija ja Lojaali. Sinua ohjaa halu ymmärtää maailmaa ja pysyä uskollisena arvoillesi ja yhteisöllesi. ";
+            } else {
+                description += "Olet moniulotteinen persoona, jossa yhdistyvät useat eri piirteet. ";
+            }
+
+            return description;
+        }
+    </script>
+</body>
+</html>

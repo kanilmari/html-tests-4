@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Cropper with Zoom</title>
+    <style>
+        body {
+            background: #222;
+            color: #ccc;
+        }
+        .crop-container {
+            width: 300px;
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0,0,0,0.5);
+            margin: 20px auto;
+        }
+        .crop-container img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.15s ease;
+        }
+        .crop-area {
+            position: absolute;
+            outline: 2px dashed #fff;
+            cursor: move;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            display: none;
+            transition: transform 0.15s ease;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .output {
+            text-align: center;
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+        }
+        /* Style for the preview area */
+        .preview-container {
+            margin: 20px auto;
+            width: 150px;
+            height: 150px;
+            background: #fff;
+            overflow: hidden;
+            border: 2px solid #ccc;
+        }
+        .preview-container canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+
+<div class="crop-container">
+    <img id="image" alt="Image to be cropped">
+    <div id="cropArea" class="crop-area"></div>
+</div>
+
+<div class="preview-container">
+    <canvas id="previewCanvas"></canvas>
+</div>
+
+<div class="controls">
+    <input type="file" id="fileInput" accept="image/*">
+    <button id="rotateButton">Rotate</button>
+    <input type="range" id="zoomSlider" min="1" max="3" step="0.1" value="1">
+</div>
+
+<div class="output">
+    <p id="scaledDimensions"></p>
+</div>
+
+<script>
+
+const img = document.getElementById('image');
+const cropArea = document.getElementById('cropArea');
+const previewCanvas = document.getElementById('previewCanvas');
+const previewCtx = previewCanvas.getContext('2d');
+const fileInput = document.getElementById('fileInput');
+const zoomSlider = document.getElementById('zoomSlider');
+let rotation = 0;
+let zoom = 1;
+let isDraggingImage = false;
+let isDraggingCrop = false;
+let startX, startY, imgStartX, imgStartY, cropStartX, cropStartY;
+
+// Event listener for file input
+fileInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            img.onload = function() {
+                cropArea.style.display = 'block';
+                updatePreview();
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// CropArea dragging logic
+cropArea.addEventListener('mousedown', function(e) {
+    isDraggingCrop = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    cropStartX = cropArea.offsetLeft;
+    cropStartY = cropArea.offsetTop;
+});
+
+document.addEventListener('mousedown', function(e) {
+    if (!cropArea.contains(e.target)) {
+        isDraggingImage = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        imgStartX = img.offsetLeft;
+        imgStartY = img.offsetTop;
+    }
+});
+
+document.addEventListener('mousemove', function(e) {
+    if (isDraggingCrop) {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        cropArea.style.left = `${cropStartX + dx}px`;
+        cropArea.style.top = `${cropStartY + dy}px`;
+        updatePreview(); // Update preview whenever crop area is moved
+    }
+    if (isDraggingImage) {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        img.style.left = `${imgStartX + dx}px`;
+        img.style.top = `${imgStartY + dy}px`;
+    }
+});
+
+document.addEventListener('mouseup', function() {
+    isDraggingCrop = false;
+    isDraggingImage = false;
+});
+
+zoomSlider.addEventListener('input', function() {
+    zoom = zoomSlider.value;
+    img.style.transform = `translate(-50%, -50%) scale(${zoom}) rotate(${rotation}deg)`;
+    updatePreview(); // Update preview when zoom changes
+});
+
+document.getElementById('rotateButton').addEventListener('click', function() {
+    rotation += 90;
+    img.style.transform = `translate(-50%, -50%) scale(${zoom}) rotate(${rotation}deg)`;
+    updatePreview(); // Update preview when rotation changes
+});
+
+// Function to update the preview canvas with the content of the crop area
+function updatePreview() {
+    const cropRect = cropArea.getBoundingClientRect();
+    const imgRect = img.getBoundingClientRect();
+
+    const cropLeft = cropRect.left - imgRect.left;
+    const cropTop = cropRect.top - imgRect.top;
+
+    // Calculate scaling factors for zoom and size adjustments
+    const scaleX = img.naturalWidth / imgRect.width;
+    const scaleY = img.naturalHeight / imgRect.height;
+
+    // Clear the preview canvas before drawing
+    previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+    // Draw the cropped area on the preview canvas
+    previewCtx.drawImage(
+        img,
+        cropLeft * scaleX, cropTop * scaleY, // Source x, y (cropped area top-left corner)
+        cropRect.width * scaleX, cropRect.height * scaleY, // Source width and height
+        0, 0, // Destination x, y on the canvas
+        previewCanvas.width, previewCanvas.height // Destination width and height on the canvas
+    );
+}
+
+</script>
+
+</body>
+</html>

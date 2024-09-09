@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Cropper with Zoom</title>
+    <title>Image Cropper without Zoom</title>
     <style>
 		body {
 			background: #222;
@@ -24,11 +24,11 @@
             top: 50%;
             left: 50%;
             transform-origin: center center;
-            transform: translate(-50%, -50%) scale(1) rotate(0deg); /* Added scale */
+            transform: translate(-50%, -50%) rotate(0deg); /* Removed scale */
             width: 100%;
             height: 100%;
             object-fit: contain;
-            transition: transform 0.15s ease; /* Smooth rotation and zoom */
+            transition: transform 0.15s ease; /* Smooth rotation */
         }
 
         /* Style for the crop area */
@@ -65,7 +65,6 @@
 <div class="controls">
     <input type="file" id="fileInput" accept="image/*">
     <button id="rotateButton">Rotate</button>
-    <input type="range" id="zoomSlider" min="1" max="3" step="0.1" value="1"> <!-- Zoom slider -->
 </div>
 
 <div class="output">
@@ -78,9 +77,7 @@ const img = document.getElementById('image');
 const cropArea = document.getElementById('cropArea');
 const fileInput = document.getElementById('fileInput');
 const scaledDimensions = document.getElementById('scaledDimensions');
-const zoomSlider = document.getElementById('zoomSlider'); // Zoom slider
 let rotation = 0;
-let zoom = 1; // Initial zoom level
 let scaledWidth, scaledHeight, cropSize;
 
 // Event listener for file input
@@ -91,8 +88,7 @@ fileInput.addEventListener('change', function(event) {
         reader.onload = function(e) {
             img.src = e.target.result;
             rotation = 0; // Reset rotation when a new image is loaded
-            zoom = 1; // Reset zoom when a new image is loaded
-            img.style.transform = `translate(-50%, -50%) scale(${zoom}) rotate(${rotation}deg)`;
+            img.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
             cropArea.style.transform = `rotate(${rotation}deg)`; // Reset crop area rotation
 
             // Show the crop area after the image is loaded
@@ -163,7 +159,7 @@ document.getElementById('rotateButton').addEventListener('click', function() {
     cropArea.style.top = `${newPos.top - containerRect.top - cropRect.height / 2}px`;
 
     // Rotate the crop area along with the image
-    img.style.transform = `translate(-50%, -50%) scale(${zoom}) rotate(${rotation}deg)`;
+    img.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
     cropArea.style.transform = `rotate(${rotation}deg)`;
 
     // Ensure crop area stays within boundaries after rotation
@@ -180,39 +176,14 @@ function rotatePosition(cx, cy, x, y, angle) {
     return { left: nx, top: ny };
 }
 
-// Event listener for zoom slider
-zoomSlider.addEventListener('input', function() {
-    zoom = zoomSlider.value;
-    img.style.transform = `translate(-50%, -50%) scale(${zoom}) rotate(${rotation}deg)`;
-
-    // Ensure crop area stays within boundaries after zooming
-    adjustCropAreaWithinBounds();
-});
-
-// Add zoom functionality with mouse scroll
-document.querySelector('.crop-container').addEventListener('wheel', function(e) {
-    e.preventDefault();
-    // Adjust zoom level based on scroll direction
-    if (e.deltaY < 0) {
-        zoom = Math.min(parseFloat(zoomSlider.max), zoom + 0.1);
-    } else {
-        zoom = Math.max(parseFloat(zoomSlider.min), zoom - 0.1);
-    }
-    zoomSlider.value = zoom;
-    img.style.transform = `translate(-50%, -50%) scale(${zoom}) rotate(${rotation}deg)`;
-
-    // Ensure crop area stays within boundaries after zooming
-    adjustCropAreaWithinBounds();
-});
-
 // Function to adjust crop area position within image boundaries
 function adjustCropAreaWithinBounds() {
     const containerWidth = 700;
     const containerHeight = 700;
 
     // Calculate current scaled image dimensions
-    let currentScaledWidth = scaledWidth * zoom;
-    let currentScaledHeight = scaledHeight * zoom;
+    let currentScaledWidth = scaledWidth;
+    let currentScaledHeight = scaledHeight;
 
     if (rotation % 180 !== 0) { // When the image is rotated 90 or 270 degrees
         [currentScaledWidth, currentScaledHeight] = [currentScaledHeight, currentScaledWidth];
@@ -255,8 +226,8 @@ document.addEventListener('mousemove', function(e) {
         const containerHeight = 700;
 
         // Calculate image boundaries based on rotation
-        let currentScaledWidth = scaledWidth * zoom;
-        let currentScaledHeight = scaledHeight * zoom;
+        let currentScaledWidth = scaledWidth;
+        let currentScaledHeight = scaledHeight;
 
         if (rotation % 180 !== 0) { // Handle rotated state (90 or 270 degrees)
             [currentScaledWidth, currentScaledHeight] = [currentScaledHeight, currentScaledWidth];
