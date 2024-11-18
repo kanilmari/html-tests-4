@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>JS-ikkunasovellus</title>
+  <style>
+    /* Modaalin tyylit */
+    .modal {
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto; /* Ota käyttöön scrollaus tarvittaessa */
+      background-color: rgba(0,0,0,0.0); /* Alussa läpinäkyvä */
+      opacity: 0; /* Alussa näkymätön */
+      visibility: hidden; /* Piilotetaan oletuksena */
+      transition: opacity 0.3s ease, background-color 0.3s ease; /* Siirtymäefekti */
+    }
+
+    /* Kun modaali on näkyvissä */
+    .modal.show {
+      background-color: rgba(0,0,0,0.4); /* Taustan tummuminen */
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Modaalin sisältö */
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto; /* 15% yläreunasta ja keskitettynä */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%; /* Leveys */
+      transition: transform 0.3s ease; /* Siirtymäefekti */
+      transform: translateY(-50px); /* Alkuasento yläviistossa */
+      opacity: 0; /* Alussa näkymätön */
+    }
+
+    /* Kun modaali on näkyvissä, sisältö liukuu paikalleen */
+    .modal.show .modal-content {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Sulje-painikkeen tyylit */
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Painikkeet -->
+  <button class="window_opener" data-modal-id="myModal1">Avaa Modaali 1</button>
+  <button class="window_opener" data-modal-id="myModal2">Avaa Modaali 2</button>
+
+  <!-- Modaalit -->
+  <div id="myModal1" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <!-- Sisältö lisätään tähän -->
+    </div>
+  </div>
+
+  <div id="myModal2" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <!-- Sisältö lisätään tähän -->
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Funktio modaalin avaamiseen
+    function openModal(button) {
+      // Hae modaalin tunniste buttonin attribuutista
+      const modalId = button.getAttribute('data-modal-id');
+      const modal = document.getElementById(modalId);
+
+      // Hae modaalin sisältöelementti
+      const modalContent = modal.querySelector('.modal-content');
+
+      // Hae sisältö modaaliin
+      fetch_modal_content(modalId).then(content => {
+        // Aseta sisältö modaaliin
+        modalContent.innerHTML = '<span class="close">&times;</span>' + content;
+
+        // Lisää tapahtumankuuntelija sulje-painikkeelle
+        const closeBtn = modalContent.querySelector('.close');
+        closeBtn.addEventListener('click', () => {
+          closeModal(modal);
+        });
+
+        // Näytä modaali lisäämällä 'show'-luokka
+        requestAnimationFrame(() => {
+          modal.classList.add('show');
+        });
+      });
+    }
+
+    // Funktio modaalin sulkemiseen
+    function closeModal(modal) {
+      modal.classList.remove('show');
+
+      // Odota siirtymän päättymistä ennen piilottamista
+      const transitionDuration = parseFloat(getComputedStyle(modal).transitionDuration) * 1000;
+
+      setTimeout(() => {
+        // Piilota modaali
+        modal.style.visibility = 'hidden';
+        // Tyhjennä sisältö
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.innerHTML = '';
+      }, transitionDuration);
+    }
+
+    // Tarkkaile olemassa olevia ja tulevia .window_opener -painikkeita
+    function monitorButtons() {
+      // Luo MutationObserver
+      const observer = new MutationObserver(mutationList => {
+        mutationList.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.classList && node.classList.contains('window_opener')) {
+              node.addEventListener('click', () => openModal(node));
+            }
+          });
+        });
+      });
+
+      // Tarkkaile dokumentin body-elementtiä
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // Lisää event listener olemassa oleviin painikkeisiin
+      document.querySelectorAll('.window_opener').forEach(button => {
+        button.addEventListener('click', () => openModal(button));
+      });
+    }
+
+    // Simuloitu funktio sisällön hakemiseen
+    function fetch_modal_content(modalId) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve('<p>Tämä on modaalin ' + modalId + ' sisältö.</p>');
+        }, 0);
+      });
+    }
+
+    // Aloita tarkkailu
+    monitorButtons();
+
+    // Sulje modaali kun käyttäjä klikkaa ikkunan ulkopuolelle
+    window.addEventListener('click', event => {
+      const modals = document.querySelectorAll('.modal');
+      modals.forEach(modal => {
+        if (event.target == modal) {
+          closeModal(modal);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

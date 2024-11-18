@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pica Image Resizer with CSP</title>
+	<link rel="stylesheet" href="css.css">
+    <!-- Content Security Policy (CSP) -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' https://unpkg.com;
+        style-src 'self';
+        img-src 'self' data:;
+        connect-src 'self';
+        font-src 'self';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'self';
+        child-src 'none';
+        worker-src 'self';
+        block-all-mixed-content;
+        upgrade-insecure-requests;
+        script-src-elem 'self' https://unpkg.com;
+        script-src 'self' https://unpkg.com 'unsafe-inline' 'strict-dynamic';
+        frame-src 'none';
+        report-uri /csp-violation;
+        script-src-attr 'none';
+        script-src-elem 'self';
+        upgrade-insecure-requests;
+        worker-src 'none';
+        script-src 'self' https://unpkg.com;">
+    </meta>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>Pica Image Resizer</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <p>Upload an image to resize it to 600px width.</p>
+    <div id="outputContainer">
+        <canvas id="outputCanvas" class="output-canvas"></canvas>
+    </div>
+</div>
+
+<!-- Pica library loaded from trusted external source -->
+<script src="https://unpkg.com/pica@latest/dist/pica.min.js"></script>
+<script src="js.js"></script>
+</body>
+</html>

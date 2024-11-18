@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Listojen Tarkistin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 45%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .list {
+            display: inline-block;
+            width: 45%;
+            vertical-align: top;
+        }
+        .list h3 {
+            margin-bottom: 5px;
+        }
+        .list ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Listojen Tarkistin</h1>
+    <div>
+        <label for="list1"><strong>Lista 1:</strong></label><br>
+        <textarea id="list1" placeholder="Syötä Lista 1 -arvot, yksi per rivi">
+active
+add-asset
+additional-info
+        </textarea>
+    </div>
+    <div>
+        <label for="list2"><strong>Lista 2:</strong></label><br>
+        <textarea id="list2" placeholder="Syötä Lista 2 -arvot, yksi per rivi">
+active
+additional-info
+animate
+        </textarea>
+    </div>
+    <button onclick="processLists()">Tarkista Listat</button>
+
+    <div class="result">
+        <div class="list">
+            <h3>Uniikit arvot Lista 1:ssä:</h3>
+            <ul id="unique1"></ul>
+        </div>
+        <div class="list">
+            <h3>Uniikit arvot Lista 2:ssa:</h3>
+            <ul id="unique2"></ul>
+        </div>
+    </div>
+
+    <script>
+        function processLists() {
+            // Hae listojen arvot ja jaa ne riveittäin
+            const list1 = document.getElementById('list1').value.split('\n').map(item => item.trim()).filter(item => item !== '');
+            const list2 = document.getElementById('list2').value.split('\n').map(item => item.trim()).filter(item => item !== '');
+
+            // Luo setit helpottamaan duplikaattien tunnistamista
+            const set1 = new Set(list1);
+            const set2 = new Set(list2);
+
+            // Etsi duplikaatit
+            const duplicates = [...set1].filter(item => set2.has(item));
+
+            // Suodata uniikit arvot
+            const unique1 = list1.filter(item => !duplicates.includes(item));
+            const unique2 = list2.filter(item => !duplicates.includes(item));
+
+            // Näytä tulokset
+            displayList('unique1', unique1);
+            displayList('unique2', unique2);
+        }
+
+        function displayList(elementId, items) {
+            const ul = document.getElementById(elementId);
+            ul.innerHTML = ''; // Tyhjennä aiemmat tulokset
+            if (items.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'Ei uniikkeja arvoja.';
+                ul.appendChild(li);
+                return;
+            }
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                ul.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>

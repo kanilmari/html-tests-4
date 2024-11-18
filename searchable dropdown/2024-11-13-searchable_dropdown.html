@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>Dropdown Checkboxit ja Haku</title>
+    <style>
+        /* Perustyylit dropdownille */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background-color: #fff;
+            min-width: 250px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dropdown-button span {
+            display: inline-block;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dropdown-button::after {
+            content: '▾';
+            margin-left: 10px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 250px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            z-index: 1;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .dropdown-item label {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dropdown">
+    <div class="dropdown-button" id="dropdownButton">
+        <span id="dropdownButtonText">Valitse vaihtoehdot</span>
+    </div>
+    <div class="dropdown-content" id="dropdownContent">
+        <input type="text" id="searchBox" class="search-box" placeholder="Hae...">
+        <div id="checkboxContainer">
+            <!-- Checkboxit luodaan JavaScriptillä -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Esimerkkidata JSON-muodossa
+    const data = [
+        { id: 1, name: "Vaihtoehto 1" },
+        { id: 2, name: "Vaihtoehto 2" },
+        { id: 3, name: "Vaihtoehto 3" },
+        { id: 4, name: "Vaihtoehto 4" },
+        { id: 5, name: "Vaihtoehto 5" },
+        { id: 6, name: "Vaihtoehto 6" },
+        { id: 7, name: "Vaihtoehto 7" },
+        { id: 8, name: "Vaihtoehto 8" },
+        { id: 9, name: "Vaihtoehto 9" },
+        { id: 10, name: "Vaihtoehto 10" }
+    ];
+
+    const dropdownButton = document.getElementById('dropdownButton');
+    const dropdownButtonText = document.getElementById('dropdownButtonText');
+    const dropdownContent = document.getElementById('dropdownContent');
+    const checkboxContainer = document.getElementById('checkboxContainer');
+    const searchBox = document.getElementById('searchBox');
+
+    // Funktio dropdownin avaamiseen/sulkemiseen
+    dropdownButton.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Sulje dropdown, jos klikkaa ulkopuolelle
+    window.addEventListener('click', (event) => {
+        if (!dropdownContent.contains(event.target) && !dropdownButton.contains(event.target)) {
+            dropdownContent.classList.remove('show');
+        }
+    });
+
+    // Luo checkboxit JSON-datasta
+    function createCheckboxes(items) {
+        checkboxContainer.innerHTML = ''; // Tyhjennä aiemmat checkboxit
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.classList.add('dropdown-item');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `checkbox-${item.id}`;
+            checkbox.value = item.name;
+            checkbox.addEventListener('change', updateSelectedValues);
+
+            const label = document.createElement('label');
+            label.htmlFor = `checkbox-${item.id}`;
+            label.textContent = item.name;
+
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            checkboxContainer.appendChild(div);
+        });
+
+        // Säilytä valinnat suodatuksen jälkeen
+        restoreCheckedStates();
+    }
+
+    // Säilytä checkboxien valinnat suodatuksen jälkeen
+    function restoreCheckedStates() {
+        const checkedValues = selectedValues.map(item => item.name);
+        const allCheckboxes = checkboxContainer.querySelectorAll('input[type="checkbox"]');
+        allCheckboxes.forEach(cb => {
+            if (checkedValues.includes(cb.value)) {
+                cb.checked = true;
+            }
+        });
+    }
+
+    // Tallennetaan valitut arvot
+    let selectedValues = [];
+
+    // Päivitä näytetyt valitut arvot
+    function updateSelectedValues() {
+        const checkedBoxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]:checked');
+        selectedValues = Array.from(checkedBoxes).map(cb => ({ id: cb.id, name: cb.value }));
+
+        // Aseta pituusraja
+        const maxLength = 30; // Esimerkiksi 30 merkkiä
+
+        let displayText = '';
+        if (selectedValues.length === 0) {
+            displayText = 'Valitse vaihtoehdot';
+        } else {
+            displayText = selectedValues.map(item => item.name).join(', ');
+            if (displayText.length > maxLength) {
+                displayText = displayText.substring(0, maxLength) + '...';
+            }
+        }
+
+        dropdownButtonText.textContent = displayText;
+    }
+
+    // Hae ja suodata checkboxeja
+    searchBox.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const filteredData = data.filter(item => item.name.toLowerCase().includes(filter));
+        createCheckboxes(filteredData);
+    });
+
+    // Alkuperäinen checkboxien luonti
+    createCheckboxes(data);
+    updateSelectedValues(); // Päivitä alussa
+
+</script>
+
+</body>
+</html>

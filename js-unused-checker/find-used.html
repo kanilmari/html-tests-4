@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript, HTML ja CSS Class & ID Extractor</title>
+    <style>
+        /* CSS-muuttujat teemoille */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --button-bg: #f0f0f0;
+            --button-text: #000000;
+            --input-bg: #ffffff;
+            --input-text: #000000;
+            --link-color: #1a0dab;
+            --error-color: #ff4d4d;
+        }
+
+        /* Tumman teeman muuttaminen */
+        .dark-theme {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --button-bg: #1f1f1f;
+            --button-text: #ffffff;
+            --input-bg: #1f1f1f;
+            --input-text: #ffffff;
+            --link-color: #8ab4f8;
+            --error-color: #ff6b6b;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        #file-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #process-btn {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #process-btn:hover {
+            opacity: 0.8;
+        }
+
+        #output {
+            margin-top: 20px;
+        }
+
+        #output ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #output li {
+            background: var(--button-bg);
+            margin: 2px 0;
+            padding: 5px;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            word-break: break-all;
+        }
+
+        /* Tumman teeman linkkien väri */
+        #output a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        #output a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tumman teeman toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .theme-toggle input {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Virheilmoitukset */
+        .error-message {
+            color: var(--error-color);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaScript, HTML ja CSS Class & ID Extractor</h1>
+    <div id="controls">
+        <input type="file" id="file-input" multiple accept=".js, .html, .css">
+        <button id="process-btn">Prosessoi tiedostot</button>
+        <div class="theme-toggle">
+            <input type="checkbox" id="theme-switch">
+            <label for="theme-switch">Tummasävy</label>
+        </div>
+    </div>
+    <div id="output"></div>
+    <script>
+        // Teeman tunnistimen toiminnallisuus
+        const themeSwitch = document.getElementById('theme-switch');
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : 'light';
+
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeSwitch.checked = true;
+        }
+
+        themeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Prosessointipainikkeen tapahtumankuuntelija
+        document.getElementById('process-btn').addEventListener('click', function() {
+            const files = document.getElementById('file-input').files;
+            if (files.length === 0) {
+                alert('Valitse yksi tai useampi JavaScript-, HTML- tai CSS-tiedosto.');
+                return;
+            }
+            // Prosessoi tiedostot
+            processFiles(files);
+        });
+
+        function processFiles(files) {
+            let classNamesJSHTML = new Set();
+            let idNamesJSHTML = new Set();
+            let classNamesCSS = new Set();
+            let idNamesCSS = new Set();
+            let filesProcessed = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    let content = event.target.result;
+                    const fileName = file.name.toLowerCase();
+
+                    if (fileName.endsWith('.js')) {
+                        // Poimi luokat ja id:t JS-tiedostosta
+                        let classes = extractClassNames(content);
+                        let ids = extractIdNames(content);
+                        classes.forEach(cls => classNamesJSHTML.add(cls));
+                        ids.forEach(id => idNamesJSHTML.add(id));
+                    } else if (fileName.endsWith('.html')) {
+                        // Poimi luokat ja id:t HTML-tiedostosta
+                        let { classes, ids } = extractFromHTML(content);
+                        classes.forEach(cls => classNamesJSHTML.add(cls));
+                        ids.forEach(id => idNamesJSHTML.add(id));
+                    } else if (fileName.endsWith('.css')) {
+                        // Poimi luokat ja id:t CSS-tiedostosta
+                        let { classes, ids } = extractFromCSS(content);
+                        classes.forEach(cls => classNamesCSS.add(cls));
+                        ids.forEach(id => idNamesCSS.add(id));
+                    }
+
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        // Kaikki tiedostot on prosessoitu
+                        // Tee jotain classNames ja idNames kanssa
+                        outputResults(classNamesJSHTML, idNamesJSHTML, classNamesCSS, idNamesCSS);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // JS-tiedostojen luokkien poiminta
+        function extractClassNames(content) {
+            let classNames = new Set();
+            // Poista kommentit (yksinkertainen lähestymistapa)
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+            // Säännöt
+            const patterns = [
+                /className\s*=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /className\s*\+=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /classList\.(add|remove|toggle)\s*\(\s*((['"][^'"]+['"]\s*,?\s*)+)\)/g, // ryhmä 3
+                /classList\.replace\s*\(\s*(['"])(.*?)\1\s*,\s*(['"])(.*?)\3\s*\)/g, // ryhmä 2 ja 4
+                /querySelector(All)?\s*\(\s*(['"])(.*?)\2\s*\)/g, // ryhmä 3
+                /\$\s*\(\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /setAttribute\s*\(\s*['"]class['"]\s*,\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /class\s*=\s*(['"])(.*?)\1/g // ryhmä 2
+            ];
+            patterns.forEach((pattern) => {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    if (pattern === patterns[2]) { // classList.add/remove/toggle
+                        let argsStr = match[3];
+                        let argRegex = /['"]([^'"]+)['"]/g;
+                        let argMatch;
+                        while ((argMatch = argRegex.exec(argsStr)) !== null) {
+                            classNames.add(argMatch[1]);
+                        }
+                    } else if (pattern === patterns[3]) { // classList.replace
+                        classNames.add(match[2]);
+                        classNames.add(match[4]);
+                    } else if (pattern === patterns[4] || pattern === patterns[5]) { // querySelector ja jQuery
+                        let selector = match[3];
+                        let classes = extractClassesFromSelector(selector);
+                        classes.forEach(cls => classNames.add(cls));
+                    } else {
+                        let classesStr = match[2];
+                        let classes = classesStr.split(/\s+/);
+                        classes.forEach(cls => {
+                            if (cls.trim()) {
+                                classNames.add(cls.trim());
+                            }
+                        });
+                    }
+                }
+            });
+            return classNames;
+        }
+
+        // JS-tiedostojen id:iden poiminta
+        function extractIdNames(content) {
+            let idNames = new Set();
+            // Poista kommentit (yksinkertainen lähestymistapa)
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+            // Säännöt
+            const patterns = [
+                /id\s*=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /getElementById\s*\(\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /setAttribute\s*\(\s*['"]id['"]\s*,\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /querySelector(All)?\s*\(\s*(['"])\#(.*?)\2\s*\)/g, // ryhmä 3
+                /\$\s*\(\s*(['"])\#(.*?)\1\s*\)/g // ryhmä 2
+            ];
+            patterns.forEach((pattern) => {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    if (pattern === patterns[3] || pattern === patterns[4]) { // querySelector ja jQuery
+                        let id = match[3];
+                        if (id) {
+                            idNames.add(id);
+                        }
+                    } else {
+                        let idStr = match[2];
+                        if (idStr.trim()) {
+                            idNames.add(idStr.trim());
+                        }
+                    }
+                }
+            });
+            return idNames;
+        }
+
+        // HTML-tiedostojen luokkien ja id:iden poiminta
+        function extractFromHTML(content) {
+            let classes = new Set();
+            let ids = new Set();
+
+            // Käytä DOMParseria HTML:n parsimiseen
+            let parser = new DOMParser();
+            let doc = parser.parseFromString(content, 'text/html');
+
+            // Poista script- ja style-elementit
+            let scripts = doc.querySelectorAll('script, style');
+            scripts.forEach(el => el.remove());
+
+            // Käy läpi kaikki elementit
+            let allElements = doc.querySelectorAll('*');
+            allElements.forEach(el => {
+                // Poimi luokat
+                if (el.classList && el.classList.length > 0) {
+                    el.classList.forEach(cls => classes.add(cls));
+                }
+                // Poimi id:t
+                if (el.id) {
+                    ids.add(el.id);
+                }
+            });
+
+            return { classes, ids };
+        }
+
+        // CSS-tiedostojen luokkien ja id:iden poiminta
+        function extractFromCSS(content) {
+            let classes = new Set();
+            let ids = new Set();
+
+            // Poista kommentit
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+            // Etsi kaikki selectorit ennen { merkkiä
+            const selectorPattern = /([^{]+)\{/g;
+            let match;
+            while ((match = selectorPattern.exec(content)) !== null) {
+                let selectors = match[1].split(',');
+                selectors.forEach(selector => {
+                    selector = selector.trim();
+                    // Poimi luokat ja id:t selectorista
+                    let extractedClasses = extractClassesFromSelector(selector);
+                    let extractedIds = extractIdsFromSelector(selector);
+                    extractedClasses.forEach(cls => classes.add(cls));
+                    extractedIds.forEach(id => ids.add(id));
+                });
+            }
+
+            return { classes, ids };
+        }
+
+        // CSS-selectorista luokkien poiminta
+        function extractClassesFromSelector(selector) {
+            let classNames = [];
+            // Etsi kaikki .luokanimi esiintymät valitsimessa
+            let regex = /\.([\w-]+)/g;
+            let match;
+            while ((match = regex.exec(selector)) !== null) {
+                classNames.push(match[1]);
+            }
+            return classNames;
+        }
+
+        // CSS-selectorista id:ien poiminta
+        function extractIdsFromSelector(selector) {
+            let idNames = [];
+            // Etsi kaikki #idnimi esiintymät valitsimessa
+            let regex = /\#([\w-]+)/g;
+            let match;
+            while ((match = regex.exec(selector)) !== null) {
+                idNames.push(match[1]);
+            }
+            return idNames;
+        }
+
+        // CSS-selectorista luokkien poiminta (tarvitaan myös JS)
+        function extractClassesFromSelector(selector) {
+            let classNames = [];
+            // Etsi kaikki .luokanimi esiintymät valitsimessa
+            let regex = /\.([\w-]+)/g;
+            let match;
+            while ((match = regex.exec(selector)) !== null) {
+                classNames.push(match[1]);
+            }
+            return classNames;
+        }
+
+        // Tulosten näyttäminen ja JSON-latauslinkin luominen
+        function outputResults(classNamesJSHTML, idNamesJSHTML, classNamesCSS, idNamesCSS) {
+            // Muunna Sets taulukoiksi
+            let classNamesJSHTMLArray = Array.from(classNamesJSHTML).sort();
+            let idNamesJSHTMLArray = Array.from(idNamesJSHTML).sort();
+            let classNamesCSSArray = Array.from(classNamesCSS).sort();
+            let idNamesCSSArray = Array.from(idNamesCSS).sort();
+
+            // Luo JSON-objekti
+            let jsonOutput = JSON.stringify({
+                classes: {
+                    fromJSHTML: classNamesJSHTMLArray,
+                    fromCSS: classNamesCSSArray
+                },
+                ids: {
+                    fromJSHTML: idNamesJSHTMLArray,
+                    fromCSS: idNamesCSSArray
+                }
+            }, null, 2);
+
+            // Luo Blob JSON-merkkijonosta
+            let blob = new Blob([jsonOutput], { type: 'application/json' });
+
+            // Luo linkki blobin lataamiseksi
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'class-id-names.json';
+            link.textContent = 'Lataa JSON-tiedosto';
+            link.style.display = 'block';
+            link.style.marginBottom = '20px';
+
+            // Lisää linkki output-diviin
+            let outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+            outputDiv.appendChild(link);
+
+            // Näytä myös luokat ja id:t sivulla
+            if (classNamesJSHTMLArray.length > 0 || classNamesCSSArray.length > 0) {
+                let classHeader = document.createElement('h2');
+                classHeader.textContent = 'Luokat (Classes):';
+                outputDiv.appendChild(classHeader);
+
+                if (classNamesJSHTMLArray.length > 0) {
+                    let subHeaderJSHTML = document.createElement('h3');
+                    subHeaderJSHTML.textContent = 'JavaScript- ja HTML-tiedostot:';
+                    outputDiv.appendChild(subHeaderJSHTML);
+
+                    let classListJSHTML = document.createElement('ul');
+                    classNamesJSHTMLArray.forEach(cls => {
+                        let li = document.createElement('li');
+                        li.textContent = cls;
+                        classListJSHTML.appendChild(li);
+                    });
+                    outputDiv.appendChild(classListJSHTML);
+                }
+
+                if (classNamesCSSArray.length > 0) {
+                    let subHeaderCSS = document.createElement('h3');
+                    subHeaderCSS.textContent = 'CSS-tiedostot:';
+                    outputDiv.appendChild(subHeaderCSS);
+
+                    let classListCSS = document.createElement('ul');
+                    classNamesCSSArray.forEach(cls => {
+                        let li = document.createElement('li');
+                        li.textContent = cls;
+                        classListCSS.appendChild(li);
+                    });
+                    outputDiv.appendChild(classListCSS);
+                }
+            }
+
+            if (idNamesJSHTMLArray.length > 0 || idNamesCSSArray.length > 0) {
+                let idHeader = document.createElement('h2');
+                idHeader.textContent = 'Tunnisteet (IDs):';
+                outputDiv.appendChild(idHeader);
+
+                if (idNamesJSHTMLArray.length > 0) {
+                    let subHeaderJSHTML = document.createElement('h3');
+                    subHeaderJSHTML.textContent = 'JavaScript- ja HTML-tiedostot:';
+                    outputDiv.appendChild(subHeaderJSHTML);
+
+                    let idListJSHTML = document.createElement('ul');
+                    idNamesJSHTMLArray.forEach(id => {
+                        let li = document.createElement('li');
+                        li.textContent = id;
+                        idListJSHTML.appendChild(li);
+                    });
+                    outputDiv.appendChild(idListJSHTML);
+                }
+
+                if (idNamesCSSArray.length > 0) {
+                    let subHeaderCSS = document.createElement('h3');
+                    subHeaderCSS.textContent = 'CSS-tiedostot:';
+                    outputDiv.appendChild(subHeaderCSS);
+
+                    let idListCSS = document.createElement('ul');
+                    idNamesCSSArray.forEach(id => {
+                        let li = document.createElement('li');
+                        li.textContent = id;
+                        idListCSS.appendChild(li);
+                    });
+                    outputDiv.appendChild(idListCSS);
+                }
+            }
+
+            if (classNamesJSHTMLArray.length === 0 && classNamesCSSArray.length === 0 &&
+                idNamesJSHTMLArray.length === 0 && idNamesCSSArray.length === 0) {
+                let noData = document.createElement('p');
+                noData.textContent = 'Yhtään luokkaa tai tunnistetta ei löytynyt.';
+                outputDiv.appendChild(noData);
+            }
+        }
+    </script>
+</body>
+</html>
+
+<!--
+
+3. js+html
+
+DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript ja HTML Class & ID Extractor</title>
+    <style>
+        /* CSS-muuttujat teemoille */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --button-bg: #f0f0f0;
+            --button-text: #000000;
+            --input-bg: #ffffff;
+            --input-text: #000000;
+            --link-color: #1a0dab;
+            --error-color: #ff4d4d;
+        }
+
+        /* Tumman teeman muuttaminen */
+        .dark-theme {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --button-bg: #1f1f1f;
+            --button-text: #ffffff;
+            --input-bg: #1f1f1f;
+            --input-text: #ffffff;
+            --link-color: #8ab4f8;
+            --error-color: #ff6b6b;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        #file-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #process-btn {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #process-btn:hover {
+            opacity: 0.8;
+        }
+
+        #output {
+            margin-top: 20px;
+        }
+
+        #output ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #output li {
+            background: var(--button-bg);
+            margin: 2px 0;
+            padding: 5px;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            word-break: break-all;
+        }
+
+        /* Tumman teeman linkkien väri */
+        #output a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        #output a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tumman teeman toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .theme-toggle input {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Virheilmoitukset */
+        .error-message {
+            color: var(--error-color);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaScript ja HTML Class & ID Extractor</h1>
+    <div id="controls">
+        <input type="file" id="file-input" multiple accept=".js, .html">
+        <button id="process-btn">Prosessoi tiedostot</button>
+        <div class="theme-toggle">
+            <input type="checkbox" id="theme-switch">
+            <label for="theme-switch">Tummasävy</label>
+        </div>
+    </div>
+    <div id="output"></div>
+    <script>
+        // Teeman tunnistimen toiminnallisuus
+        const themeSwitch = document.getElementById('theme-switch');
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : 'light';
+
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeSwitch.checked = true;
+        }
+
+        themeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Prosessointipainikkeen tapahtumankuuntelija
+        document.getElementById('process-btn').addEventListener('click', function() {
+            const files = document.getElementById('file-input').files;
+            if (files.length === 0) {
+                alert('Valitse yksi tai useampi JavaScript- tai HTML-tiedosto.');
+                return;
+            }
+            // Prosessoi tiedostot
+            processFiles(files);
+        });
+
+        function processFiles(files) {
+            let classNames = new Set();
+            let idNames = new Set();
+            let filesProcessed = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    let content = event.target.result;
+                    const fileName = file.name.toLowerCase();
+
+                    if (fileName.endsWith('.js')) {
+                        // Poimi luokat ja id:t JS-tiedostosta
+                        let classes = extractClassNames(content);
+                        let ids = extractIdNames(content);
+                        classes.forEach(cls => classNames.add(cls));
+                        ids.forEach(id => idNames.add(id));
+                    } else if (fileName.endsWith('.html')) {
+                        // Poimi luokat ja id:t HTML-tiedostosta
+                        let { classes, ids } = extractFromHTML(content);
+                        classes.forEach(cls => classNames.add(cls));
+                        ids.forEach(id => idNames.add(id));
+                    }
+
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        // Kaikki tiedostot on prosessoitu
+                        // Tee jotain classNames ja idNames kanssa
+                        outputResults(classNames, idNames);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // JS-tiedostojen luokkien poiminta
+        function extractClassNames(content) {
+            let classNames = new Set();
+            // Poista kommentit (yksinkertainen lähestymistapa)
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+            // Säännöt
+            const patterns = [
+                /className\s*=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /className\s*\+=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /classList\.(add|remove|toggle)\s*\(\s*((['"][^'"]+['"]\s*,?\s*)+)\)/g, // ryhmä 3
+                /classList\.replace\s*\(\s*(['"])(.*?)\1\s*,\s*(['"])(.*?)\3\s*\)/g, // ryhmä 2 ja 4
+                /querySelector(All)?\s*\(\s*(['"])(.*?)\2\s*\)/g, // ryhmä 3
+                /\$\s*\(\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /setAttribute\s*\(\s*['"]class['"]\s*,\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /class\s*=\s*(['"])(.*?)\1/g // ryhmä 2
+            ];
+            patterns.forEach((pattern) => {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    if (pattern === patterns[2]) { // classList.add/remove/toggle
+                        let argsStr = match[3];
+                        let argRegex = /['"]([^'"]+)['"]/g;
+                        let argMatch;
+                        while ((argMatch = argRegex.exec(argsStr)) !== null) {
+                            classNames.add(argMatch[1]);
+                        }
+                    } else if (pattern === patterns[3]) { // classList.replace
+                        classNames.add(match[2]);
+                        classNames.add(match[4]);
+                    } else if (pattern === patterns[4] || pattern === patterns[5]) { // querySelector ja jQuery
+                        let selector = match[3];
+                        let classes = extractClassesFromSelector(selector);
+                        classes.forEach(cls => classNames.add(cls));
+                    } else {
+                        let classesStr = match[2];
+                        let classes = classesStr.split(/\s+/);
+                        classes.forEach(cls => {
+                            if (cls.trim()) {
+                                classNames.add(cls.trim());
+                            }
+                        });
+                    }
+                }
+            });
+            return classNames;
+        }
+
+        // JS-tiedostojen id:iden poiminta
+        function extractIdNames(content) {
+            let idNames = new Set();
+            // Poista kommentit (yksinkertainen lähestymistapa)
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+            // Säännöt
+            const patterns = [
+                /id\s*=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /getElementById\s*\(\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /setAttribute\s*\(\s*['"]id['"]\s*,\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /querySelector(All)?\s*\(\s*(['"])\#(.*?)\2\s*\)/g, // ryhmä 3
+                /\$\s*\(\s*(['"])\#(.*?)\1\s*\)/g // ryhmä 2
+            ];
+            patterns.forEach((pattern) => {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    if (pattern === patterns[3] || pattern === patterns[4]) { // querySelector ja jQuery
+                        let id = match[3];
+                        if (id) {
+                            idNames.add(id);
+                        }
+                    } else {
+                        let idStr = match[2];
+                        if (idStr.trim()) {
+                            idNames.add(idStr.trim());
+                        }
+                    }
+                }
+            });
+            return idNames;
+        }
+
+        // HTML-tiedostojen luokkien ja id:iden poiminta
+        function extractFromHTML(content) {
+            let classes = new Set();
+            let ids = new Set();
+
+            // Käytä DOMParseria HTML:n parsimiseen
+            let parser = new DOMParser();
+            let doc = parser.parseFromString(content, 'text/html');
+
+            // Poista script- ja style-elementit
+            let scripts = doc.querySelectorAll('script, style');
+            scripts.forEach(el => el.remove());
+
+            // Käy läpi kaikki elementit
+            let allElements = doc.querySelectorAll('*');
+            allElements.forEach(el => {
+                // Poimi luokat
+                if (el.classList && el.classList.length > 0) {
+                    el.classList.forEach(cls => classes.add(cls));
+                }
+                // Poimi id:t
+                if (el.id) {
+                    ids.add(el.id);
+                }
+            });
+
+            return { classes, ids };
+        }
+
+        // CSS-selectorista luokkien poiminta
+        function extractClassesFromSelector(selector) {
+            let classNames = [];
+            // Poista valitsimen ympärillä olevat lainausmerkit, jos sellaisia on
+            selector = selector.replace(/^['"]|['"]$/g, '');
+            // Etsi kaikki .luokanimi esiintymät valitsimessa
+            let regex = /\.([\w-]+)/g;
+            let match;
+            while ((match = regex.exec(selector)) !== null) {
+                classNames.push(match[1]);
+            }
+            return classNames;
+        }
+
+        // Tulosten näyttäminen ja JSON-latauslinkin luominen
+        function outputResults(classNames, idNames) {
+            // Muunna Sets taulukoiksi
+            let classNamesArray = Array.from(classNames).sort();
+            let idNamesArray = Array.from(idNames).sort();
+
+            // Luo JSON-objekti
+            let jsonOutput = JSON.stringify({ classes: classNamesArray, ids: idNamesArray }, null, 2);
+
+            // Luo Blob JSON-merkkijonosta
+            let blob = new Blob([jsonOutput], { type: 'application/json' });
+
+            // Luo linkki blobin lataamiseksi
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'class-id-names.json';
+            link.textContent = 'Lataa JSON-tiedosto';
+            link.style.display = 'block';
+            link.style.marginBottom = '20px';
+
+            // Lisää linkki output-diviin
+            let outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+            outputDiv.appendChild(link);
+
+            // Näytä myös luokat ja id:t sivulla
+            if (classNamesArray.length > 0) {
+                let classHeader = document.createElement('h2');
+                classHeader.textContent = 'Luokat (Classes):';
+                outputDiv.appendChild(classHeader);
+
+                let classList = document.createElement('ul');
+                classNamesArray.forEach(cls => {
+                    let li = document.createElement('li');
+                    li.textContent = cls;
+                    classList.appendChild(li);
+                });
+                outputDiv.appendChild(classList);
+            }
+
+            if (idNamesArray.length > 0) {
+                let idHeader = document.createElement('h2');
+                idHeader.textContent = 'Tunnisteet (IDs):';
+                outputDiv.appendChild(idHeader);
+
+                let idList = document.createElement('ul');
+                idNamesArray.forEach(id => {
+                    let li = document.createElement('li');
+                    li.textContent = id;
+                    idList.appendChild(li);
+                });
+                outputDiv.appendChild(idList);
+            }
+
+            if (classNamesArray.length === 0 && idNamesArray.length === 0) {
+                let noData = document.createElement('p');
+                noData.textContent = 'Yhtään luokkaa tai tunnistetta ei löytynyt.';
+                outputDiv.appendChild(noData);
+            }
+        }
+    </script>
+</body>
+</html-->
+
+
+<!--
+
+1. basic
+DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript Class Extractor</title>
+    <style>
+        /* CSS-muuttujat teemoille */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --button-bg: #f0f0f0;
+            --button-text: #000000;
+            --input-bg: #ffffff;
+            --input-text: #000000;
+            --link-color: #1a0dab;
+        }
+
+        /* Tumman teeman muuttaminen */
+        .dark-theme {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --button-bg: #1f1f1f;
+            --button-text: #ffffff;
+            --input-bg: #1f1f1f;
+            --input-text: #ffffff;
+            --link-color: #8ab4f8;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #file-input {
+            flex: 1;
+        }
+
+        #process-btn {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #process-btn:hover {
+            opacity: 0.8;
+        }
+
+        #output {
+            margin-top: 20px;
+        }
+
+        #output ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #output li {
+            background: var(--button-bg);
+            margin: 2px 0;
+            padding: 5px;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Tumman teeman linkkien väri */
+        #output a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        #output a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tumman teeman toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaScript Class Extractor</h1>
+    <div id="controls">
+        <input type="file" id="file-input" multiple accept=".js">
+        <button id="process-btn">Prosessoi tiedostot</button>
+        <div class="theme-toggle">
+            <input type="checkbox" id="theme-switch">
+            <label for="theme-switch">Tummasävy</label>
+        </div>
+    </div>
+    <div id="output"></div>
+    <script>
+        // Teeman tunnistimen toiminnallisuus
+        const themeSwitch = document.getElementById('theme-switch');
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : 'light';
+
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeSwitch.checked = true;
+        }
+
+        themeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Prosessointipainikkeen tapahtumankuuntelija
+        document.getElementById('process-btn').addEventListener('click', function() {
+            const files = document.getElementById('file-input').files;
+            if (files.length === 0) {
+                alert('Valitse yksi tai useampi JavaScript-tiedosto.');
+                return;
+            }
+            // Prosessoi tiedostot
+            processFiles(files);
+        });
+
+        function processFiles(files) {
+            let classNames = new Set();
+            let filesProcessed = 0;
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    let content = event.target.result;
+                    // Poimi luokanimet sisällöstä
+                    let classes = extractClassNames(content);
+                    classes.forEach(cls => classNames.add(cls));
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        // Kaikki tiedostot on prosessoitu
+                        // Tee jotain classNames kanssa
+                        outputClassNames(classNames);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function extractClassNames(content) {
+            let classNames = new Set();
+            // Poista kommentit (yksinkertainen lähestymistapa)
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+            // Säännöt
+            const patterns = [
+                /className\s*=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /className\s*\+=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /classList\.(add|remove|toggle)\s*\(\s*((['"][^'"]+['"]\s*,?\s*)+)\)/g, // ryhmä 3
+                /classList\.replace\s*\(\s*(['"])(.*?)\1\s*,\s*(['"])(.*?)\3\s*\)/g, // ryhmä 2 ja 4
+                /querySelector(All)?\s*\(\s*(['"])(.*?)\2\s*\)/g, // ryhmä 3
+                /\$\s*\(\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /setAttribute\s*\(\s*['"]class['"]\s*,\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /class\s*=\s*(['"])(.*?)\1/g // ryhmä 2
+            ];
+            patterns.forEach((pattern, index) => {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    if (pattern === patterns[2]) { // classList.add/remove/toggle
+                        let argsStr = match[3];
+                        let argRegex = /['"]([^'"]+)['"]/g;
+                        let argMatch;
+                        while ((argMatch = argRegex.exec(argsStr)) !== null) {
+                            classNames.add(argMatch[1]);
+                        }
+                    } else if (pattern === patterns[3]) { // classList.replace
+                        classNames.add(match[2]);
+                        classNames.add(match[4]);
+                    } else if (pattern === patterns[4] || pattern === patterns[5]) { // querySelector ja jQuery
+                        let selector = match[3];
+                        let classes = extractClassesFromSelector(selector);
+                        classes.forEach(cls => classNames.add(cls));
+                    } else {
+                        let classesStr = match[2];
+                        let classes = classesStr.split(/\s+/);
+                        classes.forEach(cls => {
+                            if (cls.trim()) {
+                                classNames.add(cls.trim());
+                            }
+                        });
+                    }
+                }
+            });
+            return classNames;
+        }
+
+        function extractClassesFromSelector(selector) {
+            let classNames = [];
+            // Poista valitsimen ympärillä olevat lainausmerkit, jos sellaisia on
+            selector = selector.replace(/^['"]|['"]$/g, '');
+            // Etsi kaikki .luokanimi esiintymät valitsimessa
+            let regex = /\.([\w-]+)/g;
+            let match;
+            while ((match = regex.exec(selector)) !== null) {
+                classNames.push(match[1]);
+            }
+            return classNames;
+        }
+
+        function outputClassNames(classNames) {
+            // Muunna classNames Set taulukoksi
+            let classNamesArray = Array.from(classNames);
+            // Luo JSON-objekti
+            let jsonOutput = JSON.stringify({ classes: classNamesArray }, null, 2);
+            // Luo Blob JSON-merkkijonosta
+            let blob = new Blob([jsonOutput], { type: 'application/json' });
+            // Luo linkki blobin lataamiseksi
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'class-names.json';
+            link.textContent = 'Lataa JSON-tiedosto';
+            // Lisää linkki output-diviin
+            let outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+            outputDiv.appendChild(link);
+
+            // Näytä myös luokanimet sivulla
+            let list = document.createElement('ul');
+            classNamesArray.sort().forEach(cls => {
+                let li = document.createElement('li');
+                li.textContent = cls;
+                list.appendChild(li);
+            });
+            outputDiv.appendChild(list);
+        }
+    </script>
+</body>
+</html-->
+
+<!--
+
+2. with theme
+DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript Class ja ID Extractor</title>
+    <style>
+        /* CSS-muuttujat teemoille */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --button-bg: #f0f0f0;
+            --button-text: #000000;
+            --input-bg: #ffffff;
+            --input-text: #000000;
+            --link-color: #1a0dab;
+            --error-color: #ff4d4d;
+        }
+
+        /* Tumman teeman muuttaminen */
+        .dark-theme {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --button-bg: #1f1f1f;
+            --button-text: #ffffff;
+            --input-bg: #1f1f1f;
+            --input-text: #ffffff;
+            --link-color: #8ab4f8;
+            --error-color: #ff6b6b;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        #file-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #process-btn {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #process-btn:hover {
+            opacity: 0.8;
+        }
+
+        #output {
+            margin-top: 20px;
+        }
+
+        #output ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #output li {
+            background: var(--button-bg);
+            margin: 2px 0;
+            padding: 5px;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            word-break: break-all;
+        }
+
+        /* Tumman teeman linkkien väri */
+        #output a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        #output a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tumman teeman toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .theme-toggle input {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Virheilmoitukset */
+        .error-message {
+            color: var(--error-color);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaScript Class ja ID Extractor</h1>
+    <div id="controls">
+        <input type="file" id="file-input" multiple accept=".js">
+        <button id="process-btn">Prosessoi tiedostot</button>
+        <div class="theme-toggle">
+            <input type="checkbox" id="theme-switch">
+            <label for="theme-switch">Tummasävy</label>
+        </div>
+    </div>
+    <div id="output"></div>
+    <script>
+        // Teeman tunnistimen toiminnallisuus
+        const themeSwitch = document.getElementById('theme-switch');
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : 'light';
+
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeSwitch.checked = true;
+        }
+
+        themeSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Prosessointipainikkeen tapahtumankuuntelija
+        document.getElementById('process-btn').addEventListener('click', function() {
+            const files = document.getElementById('file-input').files;
+            if (files.length === 0) {
+                alert('Valitse yksi tai useampi JavaScript-tiedosto.');
+                return;
+            }
+            // Prosessoi tiedostot
+            processFiles(files);
+        });
+
+        function processFiles(files) {
+            let classNames = new Set();
+            let idNames = new Set();
+            let filesProcessed = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    let content = event.target.result;
+                    // Poimi luokanimet ja id:t sisällöstä
+                    let classes = extractClassNames(content);
+                    let ids = extractIdNames(content);
+                    classes.forEach(cls => classNames.add(cls));
+                    ids.forEach(id => idNames.add(id));
+                    filesProcessed++;
+                    if (filesProcessed === files.length) {
+                        // Kaikki tiedostot on prosessoitu
+                        // Tee jotain classNames ja idNames kanssa
+                        outputResults(classNames, idNames);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function extractClassNames(content) {
+            let classNames = new Set();
+            // Poista kommentit (yksinkertainen lähestymistapa)
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+            // Säännöt
+            const patterns = [
+                /className\s*=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /className\s*\+=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /classList\.(add|remove|toggle)\s*\(\s*((['"][^'"]+['"]\s*,?\s*)+)\)/g, // ryhmä 3
+                /classList\.replace\s*\(\s*(['"])(.*?)\1\s*,\s*(['"])(.*?)\3\s*\)/g, // ryhmä 2 ja 4
+                /querySelector(All)?\s*\(\s*(['"])(.*?)\2\s*\)/g, // ryhmä 3
+                /\$\s*\(\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /setAttribute\s*\(\s*['"]class['"]\s*,\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /class\s*=\s*(['"])(.*?)\1/g // ryhmä 2
+            ];
+            patterns.forEach((pattern) => {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    if (pattern === patterns[2]) { // classList.add/remove/toggle
+                        let argsStr = match[3];
+                        let argRegex = /['"]([^'"]+)['"]/g;
+                        let argMatch;
+                        while ((argMatch = argRegex.exec(argsStr)) !== null) {
+                            classNames.add(argMatch[1]);
+                        }
+                    } else if (pattern === patterns[3]) { // classList.replace
+                        classNames.add(match[2]);
+                        classNames.add(match[4]);
+                    } else if (pattern === patterns[4] || pattern === patterns[5]) { // querySelector ja jQuery
+                        let selector = match[3];
+                        let classes = extractClassesFromSelector(selector);
+                        classes.forEach(cls => classNames.add(cls));
+                    } else {
+                        let classesStr = match[2];
+                        let classes = classesStr.split(/\s+/);
+                        classes.forEach(cls => {
+                            if (cls.trim()) {
+                                classNames.add(cls.trim());
+                            }
+                        });
+                    }
+                }
+            });
+            return classNames;
+        }
+
+        function extractIdNames(content) {
+            let idNames = new Set();
+            // Poista kommentit (yksinkertainen lähestymistapa)
+            content = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+            // Säännöt
+            const patterns = [
+                /id\s*=\s*(['"])(.*?)\1/g, // ryhmä 2
+                /getElementById\s*\(\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /setAttribute\s*\(\s*['"]id['"]\s*,\s*(['"])(.*?)\1\s*\)/g, // ryhmä 2
+                /querySelector(All)?\s*\(\s*(['"])\#(.*?)\2\s*\)/g, // ryhmä 3
+                /\$\s*\(\s*(['"])\#(.*?)\1\s*\)/g // ryhmä 2
+            ];
+            patterns.forEach((pattern) => {
+                let match;
+                while ((match = pattern.exec(content)) !== null) {
+                    if (pattern === patterns[3] || pattern === patterns[4]) { // querySelector ja jQuery
+                        let id = match[3];
+                        if (id) {
+                            idNames.add(id);
+                        }
+                    } else {
+                        let idStr = match[2];
+                        if (idStr.trim()) {
+                            idNames.add(idStr.trim());
+                        }
+                    }
+                }
+            });
+            return idNames;
+        }
+
+        function extractClassesFromSelector(selector) {
+            let classNames = [];
+            // Poista valitsimen ympärillä olevat lainausmerkit, jos sellaisia on
+            selector = selector.replace(/^['"]|['"]$/g, '');
+            // Etsi kaikki .luokanimi esiintymät valitsimessa
+            let regex = /\.([\w-]+)/g;
+            let match;
+            while ((match = regex.exec(selector)) !== null) {
+                classNames.push(match[1]);
+            }
+            return classNames;
+        }
+
+        function outputResults(classNames, idNames) {
+            // Muunna Sets taulukoiksi
+            let classNamesArray = Array.from(classNames).sort();
+            let idNamesArray = Array.from(idNames).sort();
+
+            // Luo JSON-objekti
+            let jsonOutput = JSON.stringify({ classes: classNamesArray, ids: idNamesArray }, null, 2);
+
+            // Luo Blob JSON-merkkijonosta
+            let blob = new Blob([jsonOutput], { type: 'application/json' });
+
+            // Luo linkki blobin lataamiseksi
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'class-id-names.json';
+            link.textContent = 'Lataa JSON-tiedosto';
+            link.style.display = 'block';
+            link.style.marginBottom = '20px';
+
+            // Lisää linkki output-diviin
+            let outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+            outputDiv.appendChild(link);
+
+            // Näytä myös luokanimet ja id:t sivulla
+            if (classNamesArray.length > 0) {
+                let classHeader = document.createElement('h2');
+                classHeader.textContent = 'Luokat (Classes):';
+                outputDiv.appendChild(classHeader);
+
+                let classList = document.createElement('ul');
+                classNamesArray.forEach(cls => {
+                    let li = document.createElement('li');
+                    li.textContent = cls;
+                    classList.appendChild(li);
+                });
+                outputDiv.appendChild(classList);
+            }
+
+            if (idNamesArray.length > 0) {
+                let idHeader = document.createElement('h2');
+                idHeader.textContent = 'Tunnisteet (IDs):';
+                outputDiv.appendChild(idHeader);
+
+                let idList = document.createElement('ul');
+                idNamesArray.forEach(id => {
+                    let li = document.createElement('li');
+                    li.textContent = id;
+                    idList.appendChild(li);
+                });
+                outputDiv.appendChild(idList);
+            }
+
+            if (classNamesArray.length === 0 && idNamesArray.length === 0) {
+                let noData = document.createElement('p');
+                noData.textContent = 'Yhtään luokkaa tai tunnistetta ei löytynyt.';
+                outputDiv.appendChild(noData);
+            }
+        }
+    </script>
+</body>
+</html-->
