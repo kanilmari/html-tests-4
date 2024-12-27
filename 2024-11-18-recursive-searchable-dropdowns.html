@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dynaaminen Hierarkialomake Hakutoiminnolla</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg_color, #f4f4f9);
+            color: var(--text_color, #333);
+            padding: 20px;
+        }
+
+        .form-container {
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .dropdown-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border_color, #ccc);
+            border-radius: 4px;
+            background-color: white;
+            font-family: inherit;
+            box-sizing: border-box;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .dropdown-input::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            margin-top: -3px;
+            border-width: 6px 4px 0 4px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+            pointer-events: none;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid var(--border_color, #ccc);
+            z-index: 1000;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        .dropdown-list-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .dropdown-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .dropdown-optgroup {
+            padding: 5px 10px;
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+
+        .dropdown-prompt {
+            color: var(--prompt_color, #666);
+            padding: 10px;
+            font-style: italic;
+        }
+
+        .dropdown-search {
+            padding: 10px;
+            border-bottom: 1px solid var(--border_color, #ccc);
+        }
+
+        .dropdown-search input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid var(--border_color, #ccc);
+            border-radius: 4px;
+        }
+
+        .dropdown-input:focus+.dropdown-list,
+        .dropdown-list:hover {
+            display: block;
+        }
+
+        .dropdown-empty-option {
+            padding: 10px;
+            cursor: pointer;
+            font-style: italic;
+            color: var(--prompt_color, #666);
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-empty-option:hover {
+            background-color: #f0f0f0;
+        }
+
+        .dropdown-add-new-option {
+            padding: 10px;
+            cursor: pointer;
+            font-style: italic;
+            color: var(--prompt_color, #666);
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-add-new-option:hover {
+            background-color: #f0f0f0;
+        }
+
+        .dropdown-disabled-option {
+            color: var(--prompt_color, #aaa);
+            cursor: not-allowed;
+        }
+
+        .dropdown-add-new-option .disabled-text {
+            color: var(--prompt_color, #aaa);
+        }
+
+        .dropdown-list-item label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .dropdown-list-item input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .dropdown-empty-option label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .dropdown-empty-option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .edit-button,
+        .delete-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 5px;
+            color: #007BFF;
+            font-size: 14px;
+        }
+
+        .edit-button:hover,
+        .delete-button:hover {
+            text-decoration: underline;
+        }
+
+        .button-group {
+            margin-left: auto;
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container" id="form_container">
+        <!-- Dynaamiset dropdownit lisätään tänne -->
+    </div>
+    <script>
+        // Tietorakenne 16 riskillä
+        let data = [
+            // Yksiköt (2 kpl)
+            { id: 1, nimi: "Yksikkö1", parent_id: null, type: "yksiköt" },
+            { id: 2, nimi: "Yksikkö2", parent_id: null, type: "yksiköt" },
+
+            // Työtehtävät (2 per yksikkö)
+            { id: 3, nimi: "Työtehtävä1", parent_id: 1, type: "työtehtävät" },
+            { id: 4, nimi: "Työtehtävä2", parent_id: 1, type: "työtehtävät" },
+            { id: 5, nimi: "Työtehtävä3", parent_id: 2, type: "työtehtävät" },
+            { id: 6, nimi: "Työtehtävä4", parent_id: 2, type: "työtehtävät" },
+
+            // Työvaiheet (2 per työtehtävä)
+            { id: 7, nimi: "Työvaihe1", parent_id: 3, type: "työvaiheet" },
+            { id: 8, nimi: "Työvaihe2", parent_id: 3, type: "työvaiheet" },
+            { id: 9, nimi: "Työvaihe3", parent_id: 4, type: "työvaiheet" },
+            { id: 10, nimi: "Työvaihe4", parent_id: 4, type: "työvaiheet" },
+            { id: 11, nimi: "Työvaihe5", parent_id: 5, type: "työvaiheet" },
+            { id: 12, nimi: "Työvaihe6", parent_id: 5, type: "työvaiheet" },
+            { id: 13, nimi: "Työvaihe7", parent_id: 6, type: "työvaiheet" },
+            { id: 14, nimi: "Työvaihe8", parent_id: 6, type: "työvaiheet" },
+
+            // Riskit (2 per työvaihe)
+            { id: 15, nimi: "Riski1", parent_id: 7, type: "riskit" },
+            { id: 16, nimi: "Riski2", parent_id: 7, type: "riskit" },
+            { id: 17, nimi: "Riski3", parent_id: 8, type: "riskit" },
+            { id: 18, nimi: "Riski4", parent_id: 8, type: "riskit" },
+            { id: 19, nimi: "Riski5", parent_id: 9, type: "riskit" },
+            { id: 20, nimi: "Riski6", parent_id: 9, type: "riskit" },
+            { id: 21, nimi: "Riski7", parent_id: 10, type: "riskit" },
+            { id: 22, nimi: "Riski8", parent_id: 10, type: "riskit" },
+            { id: 23, nimi: "Riski9", parent_id: 11, type: "riskit" },
+            { id: 24, nimi: "Riski10", parent_id: 11, type: "riskit" },
+            { id: 25, nimi: "Riski11", parent_id: 12, type: "riskit" },
+            { id: 26, nimi: "Riski12", parent_id: 12, type: "riskit" },
+            { id: 27, nimi: "Riski13", parent_id: 13, type: "riskit" },
+            { id: 28, nimi: "Riski14", parent_id: 13, type: "riskit" },
+            { id: 29, nimi: "Riski15", parent_id: 14, type: "riskit" },
+            { id: 30, nimi: "Riski16", parent_id: 14, type: "riskit" }
+        ];
+
+        // Määritetään tasojen hierarkia
+        const typesHierarchy = ["yksiköt", "työtehtävät", "työvaiheet", "riskit"];
+
+        // Sanakirja taivutuksia varten
+        const levelNames = {
+            'yksiköt': 'yksikön',
+            'työtehtävät': 'työtehtävän',
+            'työvaiheet': 'työvaiheen',
+            'riskit': 'riskin'
+        };
+
+        const formContainer = document.getElementById('form_container');
+        const dropdowns = {};
+
+        // Funktio palauttamaan vanhemman tason
+        function getParentLevel(levelIndex) {
+            if (levelIndex > 0) {
+                return typesHierarchy[levelIndex - 1];
+            }
+            return null;
+        }
+
+        // Funktio luomaan mukautetun dropdownin
+        function createDropdown(level) {
+            const dropdownContainer = document.createElement('div');
+            dropdownContainer.className = 'dropdown';
+            dropdownContainer.id = `dropdown_${level}`;
+
+            const label = document.createElement('label');
+            label.className = 'dropdown-label';
+            label.textContent = `${capitalizeFirstLetter(level)}:`;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'dropdown-input';
+            input.placeholder = `Valitse ${level}`;
+            input.readOnly = true;
+
+            const list = document.createElement('div');
+            list.className = 'dropdown-list';
+
+            dropdownContainer.appendChild(label);
+            dropdownContainer.appendChild(input);
+            dropdownContainer.appendChild(list);
+            formContainer.appendChild(dropdownContainer);
+
+            dropdowns[level] = {
+                container: dropdownContainer,
+                input: input,
+                list: list,
+                value: null
+            };
+
+            // Tapahtumakuuntelijat
+            input.addEventListener('click', () => {
+                updateDropdownList(level);
+                toggleDropdown(level);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    list.style.display = 'none';
+                }
+            });
+        }
+
+        // Funktio päivittämään dropdown-listan sisältö
+        function updateDropdownList(level) {
+            const dropdown = dropdowns[level];
+            const list = dropdown.list;
+            const levelIndex = typesHierarchy.indexOf(level);
+            const parentLevelIndex = levelIndex - 1;
+            const parentLevel = parentLevelIndex >= 0 ? typesHierarchy[parentLevelIndex] : null;
+
+            // Kerää valitut id:t ylemmiltä tasoilta
+            const selectedIds = {};
+            for (let i = 0; i < levelIndex; i++) {
+                const higherLevel = typesHierarchy[i];
+                const selectedValue = dropdowns[higherLevel].value;
+                if (selectedValue) {
+                    selectedIds[higherLevel] = parseInt(selectedValue);
+                } else {
+                    selectedIds[higherLevel] = null;
+                }
+            }
+
+            // Etsi kaikki mahdolliset vaihtoehdot
+            const options = data.filter(item => item.type === level);
+
+            // Ryhmitellään vaihtoehdot polkujen mukaan
+            const groupedOptions = {};
+
+            options.forEach(option => {
+                const path = getItemPath(option.id);
+                const groupLabel = generateGroupLabel(path, levelIndex);
+
+                // Tarkistetaan, että vaihtoehto sopii valittuihin ylempiin tasoihin
+                let matches = true;
+                for (let i = 0; i < levelIndex; i++) {
+                    const higherLevel = typesHierarchy[i];
+                    if (selectedIds[higherLevel] && selectedIds[higherLevel] !== path[i].id) {
+                        matches = false;
+                        break;
+                    }
+                }
+
+                if (matches) {
+                    if (!groupedOptions[groupLabel]) {
+                        groupedOptions[groupLabel] = [];
+                    }
+                    groupedOptions[groupLabel].push({ option, path });
+                }
+            });
+
+            // Tyhjennetään lista
+            list.innerHTML = '';
+
+            // Hakukenttä
+            const searchContainer = document.createElement('div');
+            searchContainer.className = 'dropdown-search';
+
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Hae...';
+
+            searchContainer.appendChild(searchInput);
+            list.appendChild(searchContainer);
+
+            // Tapahtumakuuntelija hakukentälle
+            searchInput.addEventListener('input', () => {
+                filterDropdownList(level, searchInput.value);
+            });
+
+            // Lisää tyhjä valinta
+            const emptyOption = document.createElement('div');
+            emptyOption.className = 'dropdown-empty-option';
+
+            const emptyLabel = document.createElement('label');
+            emptyLabel.style.width = '100%';
+
+            const emptyRadio = document.createElement('input');
+            emptyRadio.type = 'radio';
+            emptyRadio.name = `radio_${level}`;
+            emptyRadio.value = '';
+            emptyRadio.style.marginRight = '10px';
+
+            if (dropdown.value === null) {
+                emptyRadio.checked = true;
+            }
+
+            emptyLabel.appendChild(emptyRadio);
+            emptyLabel.appendChild(document.createTextNode(`Ei valintaa (${dropdown.input.placeholder})`));
+
+            emptyOption.appendChild(emptyLabel);
+
+            // Tapahtumakuuntelija koko tyhjälle valinnalle
+            emptyOption.addEventListener('click', (e) => {
+                // Viive ennen dropdownin sulkemista
+                setTimeout(() => {
+                    selectOption(level, null);
+                    list.style.display = 'none';
+                }, 100); // 0,1 sekuntia
+            });
+
+            list.appendChild(emptyOption);
+
+            // Tarkistetaan, mitkä ylemmät tasot ovat valitsematta
+            let missingHigherSelections = [];
+            for (let i = 0; i < levelIndex; i++) {
+                const higherLevel = typesHierarchy[i];
+                if (!dropdowns[higherLevel].value) {
+                    missingHigherSelections.push(higherLevel);
+                }
+            }
+
+            // Lisää kehoteteksti, jos ylempiä valintoja puuttuu
+            if (missingHigherSelections.length > 0) {
+                const missingLevelNames = missingHigherSelections.map(level => levelNames[level] || level);
+                const promptText = `(Voit lyhentää listaa valitsemalla ylempää ${formatMissingLevels(missingLevelNames)})`;
+                const promptItem = document.createElement('div');
+                promptItem.className = 'dropdown-prompt';
+                promptItem.textContent = promptText;
+                list.appendChild(promptItem);
+            }
+
+            // Luodaan optgroup-elementit
+            for (const groupLabel in groupedOptions) {
+                const groupHeader = document.createElement('div');
+                groupHeader.className = 'dropdown-optgroup';
+                groupHeader.textContent = groupLabel;
+                list.appendChild(groupHeader);
+
+                // Päivitetty tapahtumankuuntelija vaihtoehdoille
+                groupedOptions[groupLabel].forEach(({ option, path }) => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-list-item';
+                    item.dataset.value = option.id;
+
+                    const label = document.createElement('label');
+                    label.style.width = '100%';
+
+                    // Luodaan radio-painike
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `radio_${level}`;
+                    radio.value = option.id;
+                    radio.style.marginRight = '10px';
+
+                    if (dropdown.value == option.id) {
+                        radio.checked = true;
+                    }
+
+                    label.appendChild(radio);
+                    label.appendChild(document.createTextNode(option.nimi));
+
+                    item.appendChild(label);
+
+                    // Lisätään muokkaus- ja poistopainikkeet
+                    const buttonGroup = document.createElement('div');
+                    buttonGroup.className = 'button-group';
+
+                    const editButton = document.createElement('button');
+                    editButton.className = 'edit-button';
+                    editButton.textContent = 'Muokkaa';
+                    editButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        editItem(option.id);
+                    });
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-button';
+                    deleteButton.textContent = 'Poista';
+                    deleteButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteItem(option.id, level);
+                    });
+
+                    buttonGroup.appendChild(editButton);
+                    buttonGroup.appendChild(deleteButton);
+
+                    item.appendChild(buttonGroup);
+
+                    // Tapahtumakuuntelija koko itemille
+                    item.addEventListener('click', (e) => {
+                        // Valitaan radio-painike heti
+                        radio.checked = true;
+                        selectOption(level, option.id);
+                        // Viive ennen dropdownin sulkemista
+                        setTimeout(() => {
+                            list.style.display = 'none';
+                        }, 200); // 0,2 sekuntia
+                    });
+
+                    list.appendChild(item);
+                });
+            }
+
+            // Lisätään "Lisää uusi" -vaihtoehto ja mahdollinen kehoteteksti
+            let missingParentLevels = [];
+            for (let i = 0; i < levelIndex; i++) {
+                const higherLevel = typesHierarchy[i];
+                if (!dropdowns[higherLevel].value) {
+                    missingParentLevels.push(higherLevel);
+                }
+            }
+
+            if (missingParentLevels.length > 0) {
+                const missingLevelNames = missingParentLevels.map(level => levelNames[level] || level);
+                const formattedMissingLevels = formatMissingLevels(missingLevelNames);
+
+                const addNewPrompt = document.createElement('div');
+                addNewPrompt.className = 'dropdown-prompt';
+                addNewPrompt.textContent = `Voit lisätä uuden ${level.slice(0, -1)} valittuasi ${formattedMissingLevels}.`;
+                list.appendChild(addNewPrompt);
+
+                const addNewOption = document.createElement('div');
+                addNewOption.className = 'dropdown-add-new-option dropdown-disabled-option';
+                addNewOption.textContent = `Lisää uusi ${level.slice(0, -1)}`;
+                list.appendChild(addNewOption);
+            } else {
+                const addNewOption = document.createElement('div');
+                addNewOption.className = 'dropdown-add-new-option';
+                addNewOption.textContent = `Lisää uusi ${level.slice(0, -1)}`;
+                addNewOption.addEventListener('click', () => {
+                    const newItemName = prompt(`Syötä uuden ${level.slice(0, -1)} nimi:`);
+                    if (newItemName) {
+                        const newId = data.length + 1;
+                        const parentId = parentLevel ? parseInt(dropdowns[parentLevel].value) : null;
+                        data.push({
+                            id: newId,
+                            nimi: newItemName,
+                            parent_id: parentId,
+                            type: level
+                        });
+                        selectOption(level, newId);
+                        updateDropdownList(level);
+                    }
+                });
+                list.appendChild(addNewOption);
+            }
+        }
+        // Funktio valinnan asettamiseen
+        function selectOption(level, value) {
+            const dropdown = dropdowns[level];
+            const levelIndex = typesHierarchy.indexOf(level);
+
+            if (value) {
+                // Haetaan valittu kohde
+                const selectedItem = data.find(item => item.id == value);
+
+                // Haetaan polku juuresta valittuun kohteeseen
+                const path = getItemPath(selectedItem.id);
+
+                // Päivitetään ylemmät tasot
+                for (let i = 0; i <= levelIndex; i++) {
+                    const levelAtI = typesHierarchy[i];
+                    const dropdownAtI = dropdowns[levelAtI];
+                    const itemAtI = path[i];
+
+                    dropdownAtI.value = itemAtI.id;
+                    dropdownAtI.input.value = itemAtI.nimi;
+                }
+
+                // Tyhjennetään ja päivitetään alemmat tasot
+                for (let i = levelIndex + 1; i < typesHierarchy.length; i++) {
+                    const levelAtI = typesHierarchy[i];
+                    const dropdownAtI = dropdowns[levelAtI];
+                    dropdownAtI.value = null;
+                    dropdownAtI.input.value = '';
+                }
+            } else {
+                // Tyhjennetään valinta
+                dropdown.value = null;
+                dropdown.input.value = '';
+
+                // Tyhjennetään alemmat tasot
+                for (let i = levelIndex + 1; i < typesHierarchy.length; i++) {
+                    const levelAtI = typesHierarchy[i];
+                    const dropdownAtI = dropdowns[levelAtI];
+                    dropdownAtI.value = null;
+                    dropdownAtI.input.value = '';
+                }
+            }
+        }
+
+        // Funktio dropdownin näyttämiseen/piilottamiseen
+        function toggleDropdown(level) {
+            const dropdown = dropdowns[level];
+            dropdown.list.style.display = 'block';
+        }
+
+        // Funktio dropdown-listan suodattamiseen
+        function filterDropdownList(level, searchTerm) {
+            const dropdown = dropdowns[level];
+            const items = dropdown.list.getElementsByClassName('dropdown-list-item');
+            const optgroups = dropdown.list.getElementsByClassName('dropdown-optgroup');
+            const filter = searchTerm.toUpperCase();
+
+            // Suodatetaan vaihtoehdot
+            for (let i = 0; i < items.length; i++) {
+                const txtValue = items[i].textContent || items[i].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    items[i].style.display = '';
+                } else {
+                    items[i].style.display = 'none';
+                }
+            }
+
+            // Piilotetaan tyhjät ryhmäotsikot
+            for (let i = 0; i < optgroups.length; i++) {
+                const optgroup = optgroups[i];
+                let hasVisibleItem = false;
+
+                // Tarkistetaan seuraavat sisarukset kunnes saavutetaan seuraava optgroup tai listan loppu
+                let sibling = optgroup.nextElementSibling;
+                while (sibling && !sibling.classList.contains('dropdown-optgroup')) {
+                    if (sibling.classList.contains('dropdown-list-item') && sibling.style.display !== 'none') {
+                        hasVisibleItem = true;
+                        break;
+                    }
+                    sibling = sibling.nextElementSibling;
+                }
+
+                // Piilotetaan ryhmäotsikko, jos ei löydy näkyviä vaihtoehtoja
+                if (hasVisibleItem) {
+                    optgroup.style.display = '';
+                } else {
+                    optgroup.style.display = 'none';
+                }
+            }
+        }
+
+        // Funktio palauttamaan kohteen polku juuresta alkaen
+        function getItemPath(id) {
+            const path = [];
+            let currentItem = data.find(item => item.id === id);
+            while (currentItem) {
+                path.unshift(currentItem);
+                currentItem = data.find(d => d.id === currentItem.parent_id);
+            }
+            return path;
+        }
+
+        // Funktio optgroupin labelin luomiseen
+        function generateGroupLabel(path, levelIndex) {
+            // Otetaan polusta kaikki tasot ylemmiltä tasoilta
+            const pathLabels = path.slice(0, levelIndex).map(p => p.nimi);
+            return pathLabels.join(' > ') || 'Kaikki';
+        }
+
+        // Funktio ison alkukirjaimen lisäämiseksi
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        // Funktio puuttuvien tasojen listan muotoiluun
+        function formatMissingLevels(missingLevels) {
+            if (missingLevels.length === 1) {
+                return missingLevels[0];
+            } else {
+                return missingLevels.slice(0, -1).join(', ') + ' ja ' + missingLevels[missingLevels.length - 1];
+            }
+        }
+
+        // Funktio kohteen muokkaamiseen
+        function editItem(id) {
+            const item = data.find(d => d.id === id);
+            if (item) {
+                const newName = prompt(`Muokkaa ${item.type.slice(0, -1)}n nimeä:`, item.nimi);
+                if (newName && newName.trim() !== '') {
+                    item.nimi = newName.trim();
+                    // Päivitetään kaikki dropdownit
+                    typesHierarchy.forEach(type => {
+                        if (dropdowns[type]) {
+                            updateDropdownList(type);
+                        }
+                    });
+                    // Päivitetään valitut arvot, jos muokattu kohde on valittuna
+                    const levelIndex = typesHierarchy.indexOf(item.type);
+                    const level = typesHierarchy[levelIndex];
+                    if (dropdowns[level].value == id) {
+                        dropdowns[level].input.value = item.nimi;
+                    }
+                }
+            }
+        }
+
+        // Funktio kohteen poistamiseen
+        function deleteItem(id, level) {
+            const item = data.find(d => d.id === id);
+            if (item) {
+                const confirmDelete = confirm(`Haluatko varmasti poistaa ${item.type.slice(0, -1)}n "${item.nimi}"? Tämä poistaa myös kaikki alikohteet.`);
+                if (confirmDelete) {
+                    // Poistetaan kohde ja sen alikohteet rekursiivisesti
+                    deleteItemAndChildren(id);
+
+                    // Päivitetään dropdownit
+                    typesHierarchy.forEach(type => {
+                        if (dropdowns[type]) {
+                            // Tyhjennetään valinta, jos poistettu kohde oli valittuna
+                            if (dropdowns[type].value == id) {
+                                dropdowns[type].value = null;
+                                dropdowns[type].input.value = '';
+                            }
+                            updateDropdownList(type);
+                        }
+                    });
+                }
+            }
+        }
+
+        // Rekursiivinen funktio kohteen ja sen alikohteiden poistamiseen
+        function deleteItemAndChildren(id) {
+            const children = data.filter(d => d.parent_id === id);
+            children.forEach(child => {
+                deleteItemAndChildren(child.id);
+            });
+            // Poistetaan itse kohde
+            data = data.filter(d => d.id !== id);
+        }
+
+        // Lomakkeen alustus
+        function initializeForm() {
+            typesHierarchy.forEach(type => {
+                createDropdown(type);
+            });
+        }
+
+        initializeForm();
+    </script>
+</body>
+
+</html>

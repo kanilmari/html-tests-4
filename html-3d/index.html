@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <title>3D-esimerkki: fullscreen canvas + near-plane clipping</title>
+  <style>
+    :root {
+      --bg_color: #222222;
+      --text_color: #EEEEEE;
+      --border_color: #444444;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg_color);
+      color: var(--text_color);
+      font-family: sans-serif;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Piilota selain-scrollerit */
+    }
+
+    /* Poistetaan ulkopuoliset margot ja asetetaan #canvas3d täyttämään koko ruudun */
+    #canvas3d {
+      display: block;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas3d"></canvas>
+
+  <script>
+    // ======================
+    // Kameran asetukset
+    // ======================
+    let camera_position = { x: 0, y: 0, z: -5 };
+    let camera_rotation_y = 0;   // horisontaalikääntö (radians)
+    let camera_rotation_x = 0;   // pystykääntö (radians)
+
+    const move_speed = 0.1;
+    const pitch_limit = Math.PI / 2; 
+    // near_plane -leikkauksen etäisyys
+    const near_plane = 0.1;
+
+    // ======================
+    // Maailman objektit
+    // ======================
+    // Sama perusmaailma (kuutio, lattia, seinä)
+    const cube_vertices = [
+      { x: -1, y: -1, z: -1 },
+      { x: -1, y:  1, z: -1 },
+      { x:  1, y:  1, z: -1 },
+      { x:  1, y: -1, z: -1 },
+      { x: -1, y: -1, z:  1 },
+      { x: -1, y:  1, z:  1 },
+      { x:  1, y:  1, z:  1 },
+      { x:  1, y: -1, z:  1 },
+    ];
+    const cube_edges = [
+      [0,1],[1,2],[2,3],[3,0],
+      [4,5],[5,6],[6,7],[7,4],
+      [0,4],[1,5],[2,6],[3,7]
+    ];
+
+    // Lattia
+    const floor_vertices = [
+      { x: -10, y: -2, z: -10 },
+      { x: -10, y: -2, z:  10 },
+      { x:  10, y: -2, z:  10 },
+      { x:  10, y: -2, z: -10 }
+    ];
+    const floor_edges = [
+      [0,1],[1,2],[2,3],[3,0]
+    ];
+
+    // Seinä
+    const wall_vertices = [
+      { x: -5, y: -2, z:  10 },
+      { x:  5, y: -2, z:  10 },
+      { x:  5, y:  2, z:  10 },
+      { x: -5, y:  2, z:  10 },
+    ];
+    const wall_edges = [
+      [0,1],[1,2],[2,3],[3,0]
+    ];
+
+    // Lista kaikista piirrettävistä "mesheistä"
+    const scene_meshes = [
+      { vertices: cube_vertices, edges: cube_edges },
+      { vertices: floor_vertices, edges: floor_edges },
+      { vertices: wall_vertices, edges: wall_edges }
+    ];
+
+    // ======================
+    // Kanvaasiasetukset
+    // ======================
+    const canvas = document.getElementById("canvas3d");
+    const ctx = canvas.getContext("2d");
+
+    // Asetetaan kanvaasin koko samaksi kuin selainikkuna.
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas(); // kutsu kerran alussa
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // ======================
+    // 3D -> Camera Space
+    // ======================
+    function worldToCameraSpace(vertex) {
+      // Siirrä suhteessa kameraan
+      let dx = vertex.x - camera_position.x;
+      let dy = vertex.y - camera_position.y;
+      let dz = vertex.z - camera_position.z;
+
+      // Käännä horisontaalisesti (Y-akselin ympäri)
+      const cosY = Math.cos(-camera_rotation_y);
+      const sinY = Math.sin(-camera_rotation_y);
+
+      let rx = dx * cosY - dz * sinY;
+      let rz = dx * sinY + dz * cosY;
+      let ry = dy;
+
+      // Käännä pystyakselin ympäri (X-akseli)
+      const cosX = Math.cos(-camera_rotation_x);
+      const sinX = Math.sin(-camera_rotation_x);
+
+      let ry2 = ry * cosX - rz * sinX;
+      let rz2 = ry * sinX + rz * cosX;
+
+      return { x: rx, y: ry2, z: rz2 };
+    }
+
+    // ======================
+    // near-plane -klippaus viivalle
+    // ======================
+    function clipAndProjectEdge(v1_world, v2_world) {
+      const c1 = worldToCameraSpace(v1_world);
+      const c2 = worldToCameraSpace(v2_world);
+
+      // Molemmat takana => ei piirretä
+      if (c1.z <= near_plane && c2.z <= near_plane) {
+        return null;
+      }
+
+      // Valmistellaan leikkausta
+      let points = [c1, c2];
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function intersectZplane(pA, pB, plane_z) {
+        const t = (plane_z - pA.z) / (pB.z - pA.z);
+        const x = lerp(pA.x, pB.x, t);
+        const y = lerp(pA.y, pB.y, t);
+        return { x, y, z: plane_z };
+      }
+
+      let clippedLine = [];
+
+      for (let i = 0; i < points.length; i++) {
+        let pA = points[i];
+        let pB = points[(i+1) % points.length];
+
+        let pA_inFront = (pA.z > near_plane);
+        let pB_inFront = (pB.z > near_plane);
+
+        if (pA_inFront) {
+          clippedLine.push(pA);
+        }
+        if (pA_inFront !== pB_inFront) {
+          let I = intersectZplane(pA, pB, near_plane);
+          clippedLine.push(I);
+        }
+      }
+
+      if (clippedLine.length < 2) {
+        return null;
+      }
+
+      // Projektio 2D
+      let pA_cam = clippedLine[0];
+      let pB_cam = clippedLine[1];
+
+      const fov = 1200;
+      const xA_2d = canvas.width / 2  + (pA_cam.x * (fov / pA_cam.z));
+      const yA_2d = canvas.height / 2 - (pA_cam.y * (fov / pA_cam.z));
+
+      const xB_2d = canvas.width / 2  + (pB_cam.x * (fov / pB_cam.z));
+      const yB_2d = canvas.height / 2 - (pB_cam.y * (fov / pB_cam.z));
+
+      return [ { x: xA_2d, y: yA_2d }, { x: xB_2d, y: yB_2d } ];
+    }
+
+    // ======================
+    // Piirretään scene
+    // ======================
+    function drawScene() {
+      ctx.strokeStyle = "white";
+
+      scene_meshes.forEach(mesh => {
+        const { vertices, edges } = mesh;
+        edges.forEach(edge => {
+          const v1 = vertices[edge[0]];
+          const v2 = vertices[edge[1]];
+
+          let line2d = clipAndProjectEdge(v1, v2);
+          if (line2d !== null) {
+            ctx.beginPath();
+            ctx.moveTo(line2d[0].x, line2d[0].y);
+            ctx.lineTo(line2d[1].x, line2d[1].y);
+            ctx.stroke();
+          }
+        });
+      });
+    }
+
+    // ======================
+    // Näppäinkäsittely
+    // ======================
+    const keys = {};
+
+    window.addEventListener("keydown", e => {
+      keys[e.key.toLowerCase()] = true;
+    });
+    window.addEventListener("keyup", e => {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    function handleInput() {
+      // Eteenpäin-vektori
+      const forward_x = Math.sin(camera_rotation_y);
+      const forward_z = -Math.cos(camera_rotation_y);
+
+      // Sivuttaisliikkeet
+      const strafe_left_x = -forward_z;
+      const strafe_left_z = forward_x;
+      const strafe_right_x = forward_z;
+      const strafe_right_z = -forward_x;
+
+      // S -> eteen
+      if (keys["s"]) {
+        camera_position.x += forward_x * move_speed;
+        camera_position.z += forward_z * move_speed;
+      }
+      // W -> taakse
+      if (keys["w"]) {
+        camera_position.x -= forward_x * move_speed;
+        camera_position.z -= forward_z * move_speed;
+      }
+      // D -> vasen strafe
+      if (keys["d"]) {
+        camera_position.x += strafe_left_x * move_speed;
+        camera_position.z += strafe_left_z * move_speed;
+      }
+      // A -> oikea strafe
+      if (keys["a"]) {
+        camera_position.x += strafe_right_x * move_speed;
+        camera_position.z += strafe_right_z * move_speed;
+      }
+    }
+
+    // ======================
+    // Hiiriohjaus
+    // ======================
+    canvas.addEventListener("click", () => {
+      canvas.requestPointerLock();
+    });
+
+    document.addEventListener("mousemove", e => {
+      if (document.pointerLockElement === canvas) {
+        // Vaakakääntö
+        camera_rotation_y -= e.movementX * 0.002;
+        // Pystykääntö
+        camera_rotation_x += e.movementY * 0.002;
+
+        if (camera_rotation_x > pitch_limit) camera_rotation_x = pitch_limit;
+        if (camera_rotation_x < -pitch_limit) camera_rotation_x = -pitch_limit;
+      }
+    });
+
+    // ======================
+    // Pelisilmukka
+    // ======================
+    function gameLoop() {
+      handleInput();
+      clearCanvas();
+      drawScene();
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+  </script>
+</body>
+</html>

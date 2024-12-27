@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaksi puuta samalla sivulla</title>
+<style>
+:root {
+    --bg_color: #f9f9f9;
+    --text_color: #333;
+    --border_color: #ccc;
+    --table_border_color: #ddd;
+    --button_bg_color: #e0e0e0;
+    --button_text_color: #000;
+    --button_hover_bg_color: #d0d0d0;
+    --button_hover_text_color: #000;
+    --button_active_bg_color: #bbb;
+    --button_active_text_color: #000;
+    --button_active_border_color: #999;
+}
+
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: var(--bg_color);
+    color: var(--text_color);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.tree-container {
+    background: #fff;
+    border: 1px solid var(--border_color);
+    border-radius: 4px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.node {
+    position: relative;
+    display: block;
+}
+
+.node-row {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.node-row:hover {
+    background: var(--button_hover_bg_color);
+    color: var(--button_hover_text_color);
+}
+
+.node-row input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.children {
+    overflow: hidden;
+    transition: max-height 0.25s ease-in-out;
+    border-left: 1px dashed var(--border_color);
+    margin-left: 5px;
+    padding-left: 10px;
+}
+
+.toggle {
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toggle.rotated {
+    transform: rotate(180deg);
+}
+
+button {
+    background: var(--button_bg_color);
+    color: var(--button_text_color);
+    border: 1px solid var(--border_color);
+    border-radius: 4px;
+    padding: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+}
+button:hover {
+    background: var(--button_hover_bg_color);
+    color: var(--button_hover_text_color);
+}
+button:active {
+    background: var(--button_active_bg_color);
+    color: var(--button_active_text_color);
+    border-color: var(--button_active_border_color);
+}
+
+.hidden {
+    display: none;
+}
+</style>
+</head>
+<body>
+
+<div id="navbar"></div>
+<div id="category_selection"></div>
+
+<script type="module">
+import { renderTree } from './vanilla_tree.js';
+
+const data1 = [
+    { "id": "1", "name": "Raportit", "parent_id": "null" },
+    { "id": "2", "name": "Myyntiraportti", "parent_id": "1" },
+    { "id": "3", "name": "Ostosraportti", "parent_id": "1" },
+    { "id": "4", "name": "Kuukausikatsaus", "parent_id": "1" },
+    { "id": "5", "name": "Tammikuu", "parent_id": "4" },
+    { "id": "6", "name": "Helmikuu", "parent_id": "4" },
+    { "id": "7", "name": "Vuosiraportit", "parent_id": "1" },
+    { "id": "8", "name": "2020", "parent_id": "7" },
+    { "id": "9", "name": "Q1", "parent_id": "8" },
+    { "id": "10", "name": "Q2", "parent_id": "8" },
+    { "id": "11", "name": "Q3", "parent_id": "8" },
+    { "id": "12", "name": "Q4", "parent_id": "8" },
+    { "id": "13", "name": "2021", "parent_id": "7" },
+    { "id": "14", "name": "Q1", "parent_id": "13" },
+    { "id": "15", "name": "Q2", "parent_id": "13" },
+    { "id": "16", "name": "Erikoisraportit", "parent_id": "1" },
+    { "id": "17", "name": "Asiakaskohtaiset", "parent_id": "16" },
+    { "id": "18", "name": "Asiakas A", "parent_id": "17" },
+    { "id": "19", "name": "Asiakas A - Q1", "parent_id": "18" },
+    { "id": "20", "name": "Asiakas A - Q2", "parent_id": "18" },
+    { "id": "21", "name": "Asiakas B", "parent_id": "17" },
+    { "id": "22", "name": "Asiakas B - Tammikuu", "parent_id": "21" },
+    { "id": "23", "name": "Asiakas B - Maaliskuu", "parent_id": "21" }
+];
+
+const data2 = [
+    { "id": "100", "name": "Asetukset", "parent_id": "null" },
+    { "id": "101", "name": "Käyttäjän hallinta", "parent_id": "100" },
+    { "id": "102", "name": "Luo käyttäjä", "parent_id": "101" },
+    { "id": "103", "name": "Poista käyttäjä", "parent_id": "101" },
+    { "id": "104", "name": "Päivitä tiedot", "parent_id": "101" },
+    { "id": "105", "name": "Yleiset asetukset", "parent_id": "100" },
+    { "id": "106", "name": "Palvelin", "parent_id": "105" },
+    { "id": "107", "name": "IP-asetukset", "parent_id": "106" },
+    { "id": "108", "name": "Lokiasetukset", "parent_id": "106" },
+    { "id": "109", "name": "Käyttöliittymä", "parent_id": "105" },
+    { "id": "110", "name": "Teema", "parent_id": "109" },
+    { "id": "111", "name": "Kieli", "parent_id": "109" }
+];
+
+// Esimerkki callback-funktiosta, joka kutsutaan kun painiketta klikataan
+function customButtonAction(nodeData) {
+    console.log("Custom-funktion kutsu. Valitsit: " + nodeData.name + " (id: " + nodeData.id + ")");
+}
+
+renderTree(data1, {
+    container_id: 'navbar',
+    id_suffix: '_nav',
+    render_mode: 'checkbox',
+    checkbox_mode: 'all',
+    use_icons: false,
+    populate_checkbox_selection: true,
+    max_recursion_depth: 32,
+    tree_model: 'flat',
+    initial_open_level: 1,
+    show_node_count: true,
+    show_search: true,
+    title_text: 'Ensimmäinen puu (checkboxit)'
+});
+
+renderTree(data2, {
+    container_id: 'category_selection',
+    id_suffix: '_categories',
+    render_mode: 'button',
+    checkbox_mode: 'none',
+    use_icons: false,
+    populate_checkbox_selection: false,
+    max_recursion_depth: 32,
+    tree_model: 'flat',
+    initial_open_level: 0,
+    show_node_count: true,
+    show_search: true,
+    title_text: 'Toinen puu (painikkeet)',
+    button_action_function: customButtonAction
+});
+</script>
+</body>
+</html>
