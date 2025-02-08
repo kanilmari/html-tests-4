@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Testi - Dropdown with Search</title>
+  <style>
+    * {
+        color: #ccc;
+        background-color: #333;
+    }
+    /* Voit vapaasti muokata näitä tyylejä, tai siirtää omiin CSS-tiedostoihisi */
+    .dws-dropdown-container {
+      position: relative;
+      display: inline-block;
+      width: 250px;
+      font-family: sans-serif;
+    }
+    .dws-dropdown-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .dws-dropdown-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      z-index: 999;
+    }
+    .dws-dropdown-search {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .dws-dropdown-search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+    }
+    .dws-dropdown-options {
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .dws-dropdown-option {
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .dws-dropdown-option:hover {
+      background-color: #f0f0f0;
+    }
+    .dws-dropdown-no-results {
+      padding: 8px 12px;
+      color: #666;
+      font-style: italic;
+    }
+    .dws-dropdown-clear-btn {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #888;
+      font-weight: bold;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .dws-dropdown-clear-btn:hover {
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dropdown With Search - Testi</h1>
+
+  <div id="myDropdown"></div>
+
+  <script type="module">
+    import { createDropdownWithSearch } from './vanilla_dropdown.js';
+
+    // Yksinkertainen data-esimerkki (string-lista)
+    const fruitOptions = ["Omena", "Banaani", "Mansikka", "Päärynä", "Meloni", "Ananas", "Luumu", "Persikka"];
+
+    const dropdown = createDropdownWithSearch({
+      containerElement: document.getElementById('myDropdown'),
+      options: fruitOptions,
+      placeholder: "Valitse hedelmä...",
+      searchPlaceholder: "Hae hedelmää...",
+      showClearButton: true,
+      onChange: (value) => {
+        console.log("Valittu arvo muuttui:", value);
+      }
+    });
+
+    // Voit esim. asettaa valinnan jossain vaiheessa ohjelmallisesti:
+    // dropdown.setValue("Banaani");
+
+    // Ja hakea valitun arvon:
+    // console.log("Tämänhetkinen valinta on:", dropdown.getValue());
+  </script>
+</body>
+</html>

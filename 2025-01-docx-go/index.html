@@ -1,0 +1,99 @@
+<!-- Käyttö:
+http://localhost:8086/convert-html?file=sample.odt 
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <!-- <base href="/files/"> -->
+    <title>Office reader</title>
+    <style>
+        :root {
+            --bg_color: #ffffff;
+            --text_color: #333333;
+            --border_color: #cccccc;
+        }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            background-color: var(--bg_color);
+            color: var(--text_color);
+            font-family: sans-serif;
+        }
+
+        .input_section {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        button {
+            background-color: var(--bg_color);
+            color: var(--text_color);
+            border: 1px solid var(--border_color);
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #f2f2f2;
+        }
+
+        iframe {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid var(--border_color);
+        }
+
+        td {
+            border: 1px solid gray;
+        }
+
+        ol {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Office reader</h1>
+    <div class="input_section">
+        <label for="filename_input">Syötä tiedostonimi (./files-kansiossa):</label>
+        <input type="text" id="filename_input" placeholder="word.docx" />
+        <button onclick="convertAndShowPdf()">Read in browser</button>
+    </div>
+
+    <div id="pdf_container">
+        <!-- PDF-iframe lisätään tänne dynaamisesti -->
+    </div>
+
+    <script>
+        function convertAndShowPdf() {
+            // Pyydetään PDF:ää /convert-pdf?file=<tiedosto>
+            const fileName = document.getElementById('filename_input').value.trim();
+            if (!fileName) {
+                alert("Please enter a filename, e.g. 'word.docx', 'data.xlsx', 'slides.pptx'");
+                return;
+            }
+
+            const container = document.getElementById('pdf_container');
+            container.innerHTML = "";
+
+            const iframe = document.createElement('iframe');
+            // Huom. encodeURIComponent varmistaa, että erikoismerkit eivät haittaa
+            iframe.src = "/convert-pdf?file=" + encodeURIComponent(fileName);
+            container.appendChild(iframe);
+        }
+    </script>
+</body>
+
+</html>
