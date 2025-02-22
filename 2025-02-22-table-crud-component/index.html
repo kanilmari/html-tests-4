@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Komponenttimainen Tauluesimerkki (dynaaminen)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Komponenttimainen tauluesimerkki (dynaaminen)</h1>
+
+  <!-- Dynaaminen ohjauspaneeli (filtterikentät, näkymävalitsin) -->
+  <div id="controlPanel"></div>
+
+  <!-- Kontti, johon upotetaan TableComponent -->
+  <div id="tableContainer"></div>
+
+  <!-- Oikeaklikkausvalikko valittujen solujen kopiointiin (esimerkin vuoksi) -->
+  <div
+    id="selectionMenu"
+    style="display: none; position: absolute; background-color: white; border: 1px solid #ccc;"
+  >
+    <button id="copyHeaders">Kopioi otsikoilla</button>
+    <button id="copyCellsOnly">Kopioi ilman otsikoita</button>
+  </div>
+
+  <!-- Sovelluksen pääskripti ES-moduulina -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Komponenttimainen Tauluesimerkki (dynaaminen)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Komponenttimainen tauluesimerkki (dynaaminen)</h1>
+
+  <div id="controlPanel"></div>
+
+  <div id="tableContainer"></div>
+
+  <div
+    id="selectionMenu"
+    style="display: none; position: absolute; background-color: white; border: 1px solid #ccc;"
+  >
+    <button id="copyHeaders">Kopioi otsikoilla</button>
+    <button id="copyCellsOnly">Kopioi ilman otsikoita</button>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html> -->

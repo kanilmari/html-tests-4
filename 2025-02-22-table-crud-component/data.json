@@ -1,0 +1,5 @@
+[
+    { "id": 1, "nimi": "Matti Meikäläinen", "sahkoposti": "matti@example.com" },
+    { "id": 2, "nimi": "Maija Mallikas",    "sahkoposti": "maija@example.com" },
+    { "id": 3, "nimi": "Testi Testaaja",    "sahkoposti": "testi@example.com" }
+]
