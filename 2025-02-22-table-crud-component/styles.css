@@ -115,8 +115,8 @@
     background-color: rgb(0 50 200 / 80%);
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.7);
     transition: all 0.15s ease;
-    border-right: 1px solid white;
-    border-left: 1px solid white;
+    outline: 3px solid white;
+    /* border-left: 1px solid white; */
 }
 
 /* Pieni valikko (context menu -tyyppinen) */

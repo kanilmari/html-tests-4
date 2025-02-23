@@ -1,4 +1,8 @@
-// tableComponent.js
+/**
+ * tableComponent.js
+ * 
+ * Kerro tässä kohtaa, mitä tämä komponentti tekee.
+ */
 
 import {
     generateNormalTable,
@@ -33,7 +37,7 @@ export class TableComponent {
         this.rootElement = document.createElement('div');
         this.rootElement.classList.add('table-component-root');
 
-        // Valikko (jos halutaan sisäänrakennettuna)
+        // Valikko valittujen solujen kopioimiseen
         this.selectionMenu = document.createElement('div');
         this.selectionMenu.className = 'selection-menu';
         this.selectionMenu.style.position = 'absolute';
@@ -89,13 +93,13 @@ export class TableComponent {
     }
 
     render() {
-        // Säilytetään viite selectionMenu-elementtiin
+        // Säilytetään viite selectionMenu-elementtiin ennen rootin tyhjennystä
         const menuRef = this.selectionMenu;
         this.rootElement.innerHTML = '';
-    
+
         // Suodatettu data
         const filteredData = this.getFilteredData();
-    
+
         let tableElement;
         if (this.currentView === 'normal') {
             tableElement = generateNormalTable(
@@ -116,7 +120,6 @@ export class TableComponent {
         }
 
         this.rootElement.appendChild(tableElement);
-
         this.rootElement.appendChild(menuRef);
 
         this.clearSelection();
@@ -166,6 +169,10 @@ export class TableComponent {
         const movedHeader = this.headers[fromIndex];
         this.headers.splice(fromIndex, 1);
         this.headers.splice(toIndex, 0, movedHeader);
+
+        // Tallennetaan uusi järjestys localStorageen
+        localStorage.setItem('columnsOrder', JSON.stringify(this.headers));
+
         this.render();
     }
 
@@ -178,33 +185,13 @@ export class TableComponent {
         const movedHeader = this.headers[fromIndex];
         this.headers.splice(fromIndex, 1);
         this.headers.splice(toIndex, 0, movedHeader);
+
+        // Halutessasi tallennus myös transposed-näkymän siirroille:
+        localStorage.setItem('columnsOrder', JSON.stringify(this.headers));
+
         this.render();
     }
 
-    // Maalausvalinnan aloitus
-    // onMouseDown(e) {
-    //   if (this.currentView === 'ticket') return; // Ei valintaa tiketti-näkymässä
-    //   if (e.button !== 0) return; // vain vasen hiiren nappi
-
-    //   if (!e.target.classList.contains('cell')) {
-    //     // Klikattiin jonnekin muualle
-    //     if (!this.selectionMenu.contains(e.target)) {
-    //       this.clearSelection();
-    //       this.hideSelectionMenu();
-    //     }
-    //     return;
-    //   }
-
-    //   this.isSelecting = true;
-    //   this.clearSelection();
-    //   this.hideSelectionMenu();
-
-    //   this.startRow = parseInt(e.target.dataset.row, 10);
-    //   this.startCol = parseInt(e.target.dataset.col, 10);
-
-    //   // Korostetaan alkusolu
-    //   this.highlightRegion(this.startRow, this.startCol, this.startRow, this.startCol);
-    // }
     onMouseDown(e) {
         if (this.currentView === 'ticket') return; // Ei valintaa tiketti-näkymässä
         if (e.button !== 0) return; // Vain vasen hiiren nappi
@@ -286,6 +273,7 @@ export class TableComponent {
         this.selectionMenu.style.top = y + 'px';
         this.selectionMenu.style.display = 'block';
     }
+
     hideSelectionMenu() {
         this.selectionMenu.style.display = 'none';
     }

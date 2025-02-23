@@ -5,7 +5,7 @@
  * - Luodaan TableComponent dynaamisilla otsikoilla
  * - Generoidaan filtterikentät avaimien perusteella
  * - Luodaan myös näkymävalitsin (normal / transposed / ticket)
- * - Sidotaan kopiointinapit (jos halutaan käyttää globaalia valikkoa)
+ * - Sidotaan kopiointinapit (esimerkin vuoksi index.html:ssä olevaan valikkoon)
  */
 
 import { TableComponent } from './tableComponent.js';
@@ -23,11 +23,20 @@ fetch('./data.json')
         // Poimitaan avaimet ensimmäisestä objektista
         const keys = Object.keys(tableData[0]);
 
-        // Luodaan dynaaminen headers-taulukko
-        const headers = keys.map(k => ({
-            label: capitalize(k), // esim. "id" -> "Id", "nimi" -> "Nimi"
-            key: k
-        }));
+        // Tarkistetaan, onko localStoragessa tallennettu sarakkeiden järjestys
+        let headers;
+        const storedColumns = localStorage.getItem('columnsOrder');
+        if (storedColumns) {
+            // Jos localStoragessa on jo valmiina sarakekuvaus, käytetään sitä
+            // Huom. Tallennuksen yhteydessä on tallennettu { label, key } -rakenne
+            headers = JSON.parse(storedColumns);
+        } else {
+            // Jos localStorage on tyhjä, luodaan headers dynaamisesti datan avaimista
+            headers = keys.map(k => ({
+                label: capitalize(k), // esim. "id" -> "Id", "nimi" -> "Nimi"
+                key: k
+            }));
+        }
 
         // Luodaan taulukomponentti
         const table = new TableComponent({
