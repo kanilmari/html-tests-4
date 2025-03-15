@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multiple Toggle Divs Example</title>
+  <style>
+    :root {
+      --bg_color: #222;
+      --text_color: #eee;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: var(--bg_color);
+      color: var(--text_color);
+    }
+
+    .layout-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin: 1rem;
+    }
+
+    .hovering-div {
+      position: fixed;
+      background-color: var(--bg_color);
+      color: var(--text_color);
+      padding: 1rem;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      opacity: 0.8; /* Partially see-through so you can see behind it */
+      display: none; /* Hidden by default */
+      transition: opacity 0.3s ease;
+      cursor: pointer; /* Indicate clickable area */
+    }
+
+    .hovering-div.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout-container">
+    <h1>Multiple Toggle Divs From JSON</h1>
+    <div id="checkboxContainer">
+      <!-- Checkboxes will be injected here -->
+    </div>
+  </div>
+
+  <!-- Hovering divs will be injected here dynamically -->
+  <div id="hoverContainer"></div>
+
+  <script>
+    // Sample JSON array defining each item
+    const hoverItems = [
+      {
+        id: "hover1",
+        label: "Show floating div #1",
+        content: "This is floating div #1 🤗",
+        top: "80px",
+        left: "50px"
+      },
+      {
+        id: "hover2",
+        label: "Show floating div #2",
+        content: "This is floating div #2 🤗",
+        top: "180px",
+        left: "150px"
+      },
+      {
+        id: "hover3",
+        label: "Show floating div #3",
+        content: "This is floating div #3 🤗",
+        top: "280px",
+        left: "250px"
+      }
+    ];
+
+    const checkboxContainer = document.getElementById('checkboxContainer');
+    const hoverContainer = document.getElementById('hoverContainer');
+
+    // Create checkboxes and corresponding hovering divs dynamically
+    hoverItems.forEach(item => {
+      // Create checkbox + label
+      const labelElem = document.createElement('label');
+      const checkboxElem = document.createElement('input');
+      checkboxElem.type = 'checkbox';
+      checkboxElem.id = `checkbox_${item.id}`;
+      labelElem.appendChild(checkboxElem);
+
+      // Label text
+      const labelText = document.createTextNode(` ${item.label}`);
+      labelElem.appendChild(labelText);
+
+      // Insert into DOM
+      checkboxContainer.appendChild(labelElem);
+      checkboxContainer.appendChild(document.createElement('br'));
+
+      // Create the floating div
+      const floatingDiv = document.createElement('div');
+      floatingDiv.classList.add('hovering-div');
+      floatingDiv.id = `div_${item.id}`;
+      floatingDiv.style.top = item.top;
+      floatingDiv.style.left = item.left;
+
+      // Add content
+      const contentP = document.createElement('p');
+      contentP.textContent = item.content;
+      floatingDiv.appendChild(contentP);
+
+      // Insert into hoverContainer
+      hoverContainer.appendChild(floatingDiv);
+
+      // Add event listener for checkbox
+      checkboxElem.addEventListener('change', () => {
+        if (checkboxElem.checked) {
+          floatingDiv.classList.add('visible');
+        } else {
+          floatingDiv.classList.remove('visible');
+        }
+      });
+
+      // Clicking the floating div itself toggles the checkbox
+      floatingDiv.addEventListener('click', () => {
+        checkboxElem.checked = !checkboxElem.checked;
+        if (checkboxElem.checked) {
+          floatingDiv.classList.add('visible');
+        } else {
+          floatingDiv.classList.remove('visible');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
